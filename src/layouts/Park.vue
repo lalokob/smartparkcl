@@ -35,7 +35,7 @@
 						<div class="finder row items-center q-py-md">
 							<q-icon color="dark" name="fas fa-car" size="30px"  class="col"/>
 							<input color="dark" outlined ref="iptplate_search" type="text" class="q-px-md col-8 iptplate text-uppercase text-h3 bg-none" v-model="iptplate.value" :disable="iptplate.state" autocomplete="off"/>
-							<q-btn color="dark" flat class="col" type="submit" stack icon="search" :disable="iptplate.state||iptplate.value.length<4"/>
+							<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.state||iptplate.value.length<4"/>
 						</div>
 					</q-form>
 				</div>
@@ -183,10 +183,6 @@ export default {
 			let idx = await apipark.index({apikey:this.apikey});
 			console.log(idx);
 			this.parking=idx.park;
-			// this.cashdesks = idx.cashdesks;
-			// this.wndOpening.denoms = idx.currencies.map(curr=>{curr.model=0; return curr});
-			// this.cashloading=false;
-			// console.log(this.cashdesks);
 		},
 		autoCheckPark(plate){
 			this.iptplate.value=plate;
@@ -266,8 +262,8 @@ export default {
 
 				if(resp.data){
 					let addingplate = {
-						idmnservice:resp.data.idmainservice,
-						idtariff:resp.data.idtariff,
+						idmnservice:resp.data.idmservice,
+						idtariff:resp.data.idmtariff,
 						init:resp.data.init,
 						parkstate:1,
 						plate:resp.data.plate,
@@ -275,6 +271,7 @@ export default {
 					};
 					console.log(addingplate);
 					this.parking.unshift(addingplate);
+					console.log(this.parking);
 					this.$q.notify({ color:'positive', message: `Checkin ${resp.data.idpark} correcto!!`, icon: 'done' });
 					this.wndCheckinStd.state=false;
 					this.iptplate.value="";

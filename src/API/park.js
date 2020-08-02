@@ -12,7 +12,7 @@ export default{
         });
     },
     magic(data){
-        console.log("%cHaciendo magia......","font-size:2em; color:gold;");
+        console.log("%cBuscando...","font-size:2em; color:gold;");
         console.log(data);
         return apipark.post('park/mginput',data);
     },
