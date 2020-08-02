@@ -2,8 +2,8 @@ import Vue from 'vue'
 import axios from 'axios'
 
 const apipark = axios.create({
-    // baseURL: 'http://189.236.136.117:2244/public/',
-    baseURL: 'http://192.168.1.72/smartpark/public',
+    baseURL: 'http://192.168.1.243/smartpark/public',
+    // baseURL: 'http://192.168.1.72/smartpark/public',
     timeout:2500,
 });
 
