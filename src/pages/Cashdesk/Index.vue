@@ -103,7 +103,7 @@ export default {
 		},
 		resetwndOpening(){
 			this.wndOpening.cash=null;
-			this.wndOpening.state=fasle;
+			this.wndOpening.state=false;
 			this.wndOpening.opening=false;
 			this.wndOpening.denoms = idx.currencies.map(curr=>{curr.model=0; return curr});
 

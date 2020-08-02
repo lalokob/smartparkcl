@@ -264,18 +264,19 @@ export default {
 				let resp = success.data;
 				console.log(resp);
 
-				if(resp.dtpark){
+				if(resp.data){
 					let addingplate = {
-						idmnservice:resp.dtpark._mainservice,
-						idtariff:resp.dtpark._tariff,
-						init:resp.dtpark.init,
+						idmnservice:resp.data.idmainservice,
+						idtariff:resp.data.idtariff,
+						init:resp.data.init,
 						parkstate:1,
-						plate:resp.dtplate.plate,
-						plateid: resp.dtplate.id
+						plate:resp.data.plate,
+						plateid:resp.data.idplate
 					};
+					console.log(addingplate);
 					this.parking.unshift(addingplate);
-					this.$q.notify({ color:'positive', message: `Checkin ${resp.dtpark.id} correcto!!`, icon: 'done' });
-					this.wndCheckinStd=true;
+					this.$q.notify({ color:'positive', message: `Checkin ${resp.data.idpark} correcto!!`, icon: 'done' });
+					this.wndCheckinStd.state=false;
 					this.iptplate.value="";
 				}
 			}).catch(fail=>{
