@@ -1,5 +1,5 @@
 <template>
-	<q-layout view="hHh Lpr fFf"> <!-- Be sure to play with the Layout demo on docs -->
+	<q-layout view="hHr Lpr fFr"> <!-- Be sure to play with the Layout demo on docs -->
 
 		<!-- (Optional) The Header -->
 		<q-header class="bg-white text-dark">
@@ -20,11 +20,56 @@
 		</q-footer>
 
 		<!-- (Optional) A Drawer; you can add one more with side="right" or change this one's side -->
-		<q-drawer v-model="leftDrawer" side="left" bordered content-class="bg-grey-2">
-			<!-- QScrollArea is optional -->
-			<q-scroll-area class="fit q-pa-sm">
-				<!-- Content here -->
-			</q-scroll-area>
+		<q-drawer v-model="lrDrawer" side="right" bordered content-class="bg-white">
+			<div class="q-pa-md">
+				<q-card class="text-weight-light">
+					<q-card-section>
+						Capacidad total: {{ maxplaces }}
+						<q-linear-progress size="25px" :value="capacitypark" color="dark">
+							<div class="absolute-full flex flex-center">
+								<q-badge color="white" text-color="dark" :label="capacityparklabel" />
+							</div>
+						</q-linear-progress>
+					</q-card-section>
+					<q-separator />
+					<q-card-section horizontal>
+						<q-card-section class="col column text-center">
+							<span class="text-center text-caption">En uso</span>
+							<span class="text-center text-h5">{{ parking ? pksactives.length:0 }}</span>
+						</q-card-section>
+						
+						<q-card-section class="col column text-center">
+							<span class="text-caption">Libres</span>
+							<span class="text-h5">{{ freeplaces }}</span>
+						</q-card-section>
+					</q-card-section>
+					<q-separator />
+					<q-card-section horizontal>
+						<q-card-section class="col column text-center">
+							<span class="text-center text-caption">Entradas:</span>
+							<span class="text-center text-h5">{{ parking ? parking.length:0 }}</span>
+						</q-card-section>						
+						<q-card-section class="col column text-center">
+							<span class="text-caption">Cobros:</span>
+							<span class="text-h6">{{ parking ? pkschargeds.length : 0 }}</span>
+						</q-card-section>
+					</q-card-section>
+					
+				</q-card>
+			</div>
+			<q-separator/>
+			<div>
+				<div class="text-weight-light" v-for="(park,idxpk) in pkschargeds" :key="'pksch_'+idxpk">
+					<q-card flat>
+						<q-card-section>
+							Folio: {{ park.id }}<br/>
+							Placa: {{ park.plate }}<br/>
+							Salida: {{ park.ends }}
+						</q-card-section>
+					</q-card>
+					<q-separator/>
+				</div>
+			</div>
 		</q-drawer>
 
 		<q-page-container>
@@ -35,14 +80,14 @@
 						<div class="finder row items-center q-py-md">
 							<q-icon color="dark" name="fas fa-car" size="30px"  class="col"/>
 							<input color="dark" outlined ref="iptplate_search" type="text" class="q-px-md col-8 iptplate text-uppercase text-h3 bg-none" v-model="iptplate.value" :disable="iptplate.state" autocomplete="off"/>
-							<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.state||iptplate.value.length<4"/>
+							<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.state||iptplate.value.length<3"/>
 						</div>
 					</q-form>
 				</div>
 				
 				<div class="row q-mt-md q-pt-md q-pl-md justify-center">
 					<!-- { "plateid": 24, "plate": "FGH-123", "idmnservice": 1, "init": "2020-08-01 02:14:00", "idtariff": 1, "parkstate": "1" } -->
-					<div v-for="(park,idxpk) in parking" :key="idxpk">
+					<div v-for="(park,idxpk) in pksactives" :key="idxpk">
 						<q-card class="q-mr-md q-mb-md" flat bordered>
 							<q-card-section horizontal>
 								<q-card-section class="column justify-center">
@@ -51,8 +96,8 @@
 								</q-card-section>
 								<q-separator vertical/>
 								<q-card-actions vertical class="justify-around q-px-md">
-									<template v-if="park.parkstate==1">
-										<q-btn flat round color="primary" icon="fas fa-angle-double-up" @click="autoCheckPark(park.plate);" />
+									<template v-if="park.parkstate==1||park.parkstate==4">
+										<q-btn flat round :color="park.parkstate==1?'primary':'accent'" icon="fas fa-angle-double-up" @click="autoCheckPark(park.plate);" />
 									</template>
 									<template v-if="park.parkstate==2">
 										<q-btn flat round color="red" icon="fas fa-cut" />
@@ -62,9 +107,9 @@
 						</q-card>
 					</div>
 				</div>
-
+				<!-- CHECKIN STANDARD -->
 				<q-dialog v-model="wndCheckinStd.state" @before-hide="iptplate.value=''">
-					<q-card>
+					<q-card v-if="wndCheckinStd.case">
 						<q-toolbar>
 							<q-toolbar-title class="text-center">
 								<span class="text-weight-light text-uppercase"> {{ iptplate.value }} </span>
@@ -80,9 +125,14 @@
 							<q-btn outline label="Checkin" @click="checkInSTD()"/>
 						</q-card-actions>
 					</q-card>
+					<q-card v-else>
+						<q-card-section>
+							<h6>No ha inicado caja..</h6>
+						</q-card-section>
+					</q-card>
 				</q-dialog>
 
-				<q-dialog v-model="wndPreCheckOutStd.state" @before-hide="iptplate.value=''">
+				<q-dialog v-model="wndPreCheckOutStd.state" @hide="resetPrecheckout" @before-hide="iptplate.value=''">
 					<q-card>
 						<q-toolbar>
 							<q-toolbar-title >
@@ -124,18 +174,18 @@
 							</q-card-section>
 
 							<q-card-section>
-								<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
-								<q-input color="dark" type="number" v-model="wndPreCheckOutStd.paytotal" stack-label label="pago"/>
+								<q-form @submit="makeCharge()">
+									<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
+									<q-input color="dark" type="number" v-model="wndPreCheckOutStd.paytotal" stack-label label="pago"/>
 
-								<q-card-actions align="center" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
-									<q-btn color="primary" full-width flat label="pagar" @click="makeCharge()"/>
-								</q-card-actions>
+									<q-card-actions align="center" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
+										<q-btn type="submit" color="primary" full-width flat label="pagar"/>
+									</q-card-actions>
+								</q-form>
 								<div class="text-center q-pa-md" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
 									Cambio: {{wndPreCheckOutStd.paytotal-wndPreCheckOutStd.topay.totalcost}}
 								</div>
 							</q-card-section>
-
-							
 						</q-card-section>
 					</q-card>
 				</q-dialog>
@@ -153,9 +203,13 @@ export default {
     data () {
 		return {
 			parking:null,
-			leftDrawer: false,
+			maxplaces:90,
+			lrDrawer: true,
 			iptplate:{state:false,value:""},
-			wndCheckinStd:{state:false},
+			wndCheckinStd:{
+				state:false,
+				case:null
+			},
 			wndPreCheckOutStd:{
 				state:false,
 				topay:null,
@@ -173,6 +227,8 @@ export default {
 			usetariff:{value:1,label:"Publico"},
 			usepayway:{value:1,label:"Efectivo"},
 			notascheckinstd:"",
+			progress1:0.5,
+			progress2:0.8
 		}
 	},
 	beforeMount(){
@@ -183,6 +239,9 @@ export default {
 			let idx = await apipark.index({apikey:this.apikey});
 			console.log(idx);
 			this.parking=idx.park;
+		},
+		resetPrecheckout(){
+			this.wndPreCheckOutStd.paytotal=0;
 		},
 		autoCheckPark(plate){
 			this.iptplate.value=plate;
@@ -197,11 +256,12 @@ export default {
 			apipark.magic(data).then(success=>{
 				let resp = success.data;
 				console.log(resp);
+				this.wndCheckinStd.case=resp.cashavls;	
 
-				switch (resp.inpark) {
+				switch (resp.parkexs) {
 					case 404: case 205:
 						console.log("Realizar checkin STD, continuar?");
-						this.wndCheckinStd.state=true;	
+						this.wndCheckinStd.state=true;
 					break;
 
 					case 200:
@@ -283,6 +343,20 @@ export default {
 	},
 	computed:{
 		apikey(){ return this.$store.state.account.apikey },
+		capacityparklabel () {
+			if(this.parking){ 
+				return (this.pksactives.length*100/this.maxplaces).toFixed(1)+' %'
+			}else{ return 0;}
+		},
+		capacitypark() {
+			if(this.parking){ 
+				return (this.pksactives.length/this.maxplaces).toFixed(1)
+			}else{ return 0;} 
+		},
+		pksactives(){ if(this.parking) {return this.parking.filter(pk=>{ return pk.parkstate==4||pk.parkstate==1 }); } },
+		pkschargeds(){ if(this.parking){ return this.parking.filter( pk =>{ return pk.parkstate==3 }); } },
+		freeplaces(){ if(this.parking){ return this.maxplaces-this.pksactives.length}else{return 0;} }
+		// bills(){ if(this.denomsdb){ return this.denomsdb.filter( el => { return el.type==1; }); } },
 	}
 }
 </script>

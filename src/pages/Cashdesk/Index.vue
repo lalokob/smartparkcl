@@ -24,7 +24,7 @@
 							<!-- <q-btn flat round color="red" icon="fas fa-archive" /> -->
 						</template>
 						<template v-if="cash._state==3">
-							<q-btn flat round color="red" icon="fas fa-cut" />
+							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
 						</template>
 						
 					</q-card-actions>
@@ -36,7 +36,7 @@
 			<q-card >
 				<q-toolbar class="bg-white text-dark">
 						<q-toolbar-title>
-							<span class="text-weight-light"> Apertura de Caja </span>
+							<span class="text-weight-light"> Apertura de Caja {{ wndOpening.cash ? wndOpening.cash.id:''}}</span>
 						</q-toolbar-title>
 				</q-toolbar>
 				<q-card-section>
@@ -60,6 +60,35 @@
 			</q-card>
 		</q-dialog>
 
+		<q-dialog v-model="wndCut.state">
+			<q-card>
+				<q-toolbar class="bg-white text-dark">
+					<q-toolbar-title>
+						<span class="text-weight-light"> Corte de Caja {{ wndCut.cash ? wndCut.cash.id:''}}</span>
+					</q-toolbar-title>
+				</q-toolbar>
+
+				<q-card-section>
+					<div class="row">
+						<q-markup-table flat>
+							<tr v-for="(bill,idx) in bills" :key="idx+'_bill'" class="text-indigo-5">
+								<td><q-input color="dark" type="number" min="0" v-model="bill.model" stack-label :label="'$ '+String(bill.value)" /></td>
+							</tr>
+						</q-markup-table>
+						<q-markup-table flat>
+							<tr v-for="(coin,idx) in coins" :key="idx+'_coin'">
+								<td><q-input color="dark" type="number" min="0" v-model="coin.model" stack-label :label="'$ '+String(coin.value)"/></td>
+							</tr>
+						</q-markup-table>
+					</div>
+				</q-card-section>
+
+				<q-card-actions align="center" v-if="totalCurrs" >
+					<q-btn color="dark" :loading="wndCut.cuting" @click="makeCut">Cerrar caja con: ${{ totalCurrs }}</q-btn>
+				</q-card-actions>
+			</q-card>
+		</q-dialog>
+
 	</q-page>
 </template>
 
@@ -71,9 +100,14 @@ export default {
 		return{
 			cashloading:true,
 			cashdesks:[],
+			denomsdb:null,
+			wndCut:{
+				state:false,
+				cash:null,
+				cuting:false
+			},
 			wndOpening:{
 				state:false,
-				denoms:null,
 				cash:null,
 				opening:false
 			},
@@ -91,26 +125,55 @@ export default {
 		async index(){
 			let idx = await apipark.index({apikey:this.apikey});
 			this.cashdesks = idx.cashdesks;
-			this.wndOpening.denoms = idx.currencies.map(curr=>{curr.model=0; return curr});
+			this.denomsdb = idx.currencies.map(curr=>{curr.model=0; return curr});
 			this.cashloading=false;
-			console.log(this.cashdesks);
+		},
+		initCut(idx){
+			this.wndCut.cash=this.cashdesks[idx];
+			this.wndCut.state=true;
 		},
 		initOpening(idx){
 			this.wndOpening.cash=this.cashdesks[idx];
-			this.wndOpening.state=true
-
-			console.log(this.wndOpening);
+			this.wndOpening.state=true;
+		},
+		resetwndCut(){
+			this.wndCut.cash=null;
+			this.wndCut.state=false;
+			this.wndCut.cuting=false;
 		},
 		resetwndOpening(){
 			this.wndOpening.cash=null;
 			this.wndOpening.state=false;
 			this.wndOpening.opening=false;
-			this.wndOpening.denoms = idx.currencies.map(curr=>{curr.model=0; return curr});
+		},
+		makeCut(){
+			console.log("cutcash starts");
+			let denoms = this.denomsdb.map(den=>{return {id:den.id,cant:parseInt(den.model)}});
+			let data = {
+				"apikey":this.apikey,
+				"cashdesk":{
+					"id":this.wndCut.cash.id,
+					"denoms":denoms,
+					"assignedto":3,
+					"notes":""
+				}
+			}
+			this.wndCut.cuting=true;
 
+			apipark.makeCut(data).then(success=>{
+				let resp = success.data
+				console.log(resp);
+				this.$q.notify({ color:'positive', message: `Corte ${resp.resume.cut.id} concretado!!`, icon: 'done' });				
+				let idx = this.cashdesks.findIndex(item => item.id==this.wndCut.cash.id);
+				this.cashdesks[idx]._state=2;
+				this.resetwndCut();
+			}).catch(fail=>{
+				console.log(fail);
+			});
 		},
 		makeOpening(){
-			console.log("staritng opening");
-			let denoms = this.wndOpening.denoms.map(den=>{return {id:den.id,cant:parseInt(den.model)}});
+			console.log("opening starts");
+			let denoms = this.denomsdb.map(den=>{return {id:den.id,cant:parseInt(den.model)}});
 			console.log(this.wndOpening.cash.id);
 			let data = {
 				"apikey":this.apikey,
@@ -140,22 +203,12 @@ export default {
 	},
 	computed:{
 		apikey(){ return this.$store.state.account.apikey },
-		bills(){
-			if(this.wndOpening.denoms){
-				return this.wndOpening.denoms.filter( el => { return el.type==1; });
-			}
-		},
-		coins(){
-			if(this.wndOpening.denoms){
-				return this.wndOpening.denoms.filter( el => { return el.type==2; });
-			}
-		},
+		bills(){ if(this.denomsdb){ return this.denomsdb.filter( el => { return el.type==1; }); } },
+		coins(){ if(this.denomsdb){ return this.denomsdb.filter( el => { return el.type==2; }); } },
 		totalCurrs(){
-			if(this.wndOpening.denoms){
+			if(this.denomsdb){
 				let $total = this.coins.map(coin => coin.value*coin.model).reduce((amount,el)=>{ return amount+el; })+this.bills.map(bill => bill.value*bill.model).reduce((amount,el)=>{ return amount+el; });
-				console.log($total);
 				return $total;
-				// return Object.values(this.coins).reduce((amount,el)=>{ return amount+(el.model*el.value); },0);
 			}
 			return 0;
 		}
