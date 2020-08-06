@@ -177,35 +177,39 @@ export default {
 			});
 		},
 		makeOpening(){
-			console.log("opening starts");
-			let denoms = this.denomsdb.map(den=>{return {id:den.id,cant:parseInt(den.model)}});
-			console.log(this.wndOpening.cash.id);
-			let data = {
-				"apikey":this.apikey,
-				"cashdesk":{
-					"id":this.wndOpening.cash.id,
-					"denoms":denoms,
-					"assignto":this.userforassign.value,
-					"notes":""
+			if(this.userforassign.value){
+				console.log("opening starts");
+				let denoms = this.denomsdb.map(den=>{return {id:den.id,cant:parseInt(den.model)}});
+				console.log(this.wndOpening.cash.id);
+				let data = {
+					"apikey":this.apikey,
+					"cashdesk":{
+						"id":this.wndOpening.cash.id,
+						"denoms":denoms,
+						"assignto":this.userforassign.value,
+						"notes":""
+					}
 				}
+				console.log(data);
+				this.wndOpening.opening=true;
+
+				apipark.newOpening(data).then(success=>{
+					let resp  = success.data
+					console.log(resp);
+					if(resp){
+						this.wndOpening.state=false;
+						let idx = this.cashdesks.findIndex(item => item.id==this.wndOpening.cash.id);
+						this.cashdesks[idx]._state=3;
+
+						this.$q.notify({ color:'positive', message: `Listo!! (${resp.rset.openid})`, icon: 'done' });
+						this.resetwndOpening();
+					}
+				}).catch(fail=>{
+					console.log(fail);
+				});
+			}else{
+				this.$q.notify({ color:'warning', message: `Debes seleccionar un cajero`, icon: 'error_outline' });
 			}
-			console.log(data);
-			this.wndOpening.opening=true;
-
-			apipark.newOpening(data).then(success=>{
-				let resp  = success.data
-				console.log(resp);
-				if(resp){
-					this.wndOpening.state=false;
-					let idx = this.cashdesks.findIndex(item => item.id==this.wndOpening.cash.id);
-					this.cashdesks[idx]._state=3;
-
-					this.$q.notify({ color:'positive', message: `Listo!! (${resp.rset.openid})`, icon: 'done' });
-					this.resetwndOpening();
-				}
-			}).catch(fail=>{
-				console.log(fail);
-			});
 		}
 	},
 	computed:{
