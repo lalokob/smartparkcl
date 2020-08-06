@@ -23,6 +23,10 @@
 		<q-drawer v-model="lrDrawer" side="right" bordered content-class="bg-white">
 			<div class="q-pa-md">
 				<q-card class="text-weight-light">
+					<q-card-section class="text-weigth-light">
+						Hola, {{ usdata.nick }}
+					</q-card-section>
+					<q-separator/>
 					<q-card-section>
 						Capacidad total: {{ maxplaces }}
 						<q-linear-progress size="25px" :value="capacitypark" color="dark">
@@ -37,24 +41,25 @@
 							<span class="text-center text-caption">En uso</span>
 							<span class="text-center text-h5">{{ parking ? pksactives.length:0 }}</span>
 						</q-card-section>
-						
 						<q-card-section class="col column text-center">
 							<span class="text-caption">Libres</span>
 							<span class="text-h5">{{ freeplaces }}</span>
 						</q-card-section>
 					</q-card-section>
-					<q-separator />
-					<q-card-section horizontal>
-						<q-card-section class="col column text-center">
-							<span class="text-center text-caption">Entradas:</span>
-							<span class="text-center text-h5">{{ parking ? parking.length:0 }}</span>
-						</q-card-section>						
-						<q-card-section class="col column text-center">
-							<span class="text-caption">Cobros:</span>
-							<span class="text-h6">{{ parking ? pkschargeds.length : 0 }}</span>
+					<template  v-if="usdata.rolid==1||usdata.rol==2">
+						<q-separator />
+						<q-card-section horizontal>
+							<q-card-section class="col column text-center">
+								<span class="text-center text-caption">Entradas:</span>
+								<span class="text-center text-h5">{{ parking ? parking.length:0 }}</span>
+							</q-card-section>						
+							<q-card-section class="col column text-center">
+								<span class="text-caption">Cobros:</span>
+								<span class="text-h6">{{ parking ? pkschargeds.length : 0 }}</span>
+							</q-card-section>
 						</q-card-section>
-					</q-card-section>
-					
+					</template>
+						
 				</q-card>
 			</div>
 			<q-separator/>
@@ -173,7 +178,7 @@
 								</q-markup-table>
 							</q-card-section>
 
-							<q-card-section>
+							<q-card-section  v-if="usdata.rolid==1||usdata.rol==2">
 								<q-form @submit="makeCharge()">
 									<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
 									<q-input color="dark" type="number" v-model="wndPreCheckOutStd.paytotal" stack-label label="pago"/>
@@ -233,6 +238,10 @@ export default {
 	},
 	beforeMount(){
 		this.index();
+	},
+	mounted(){
+		console.log("%cCargando data dle usuario","font-size:2em;");
+		console.log(this.usdata);
 	},
 	methods:{
 		async index(){
@@ -320,19 +329,19 @@ export default {
 				let resp = success.data;
 				console.log(resp);
 
-				if(resp.data){
+				if(resp.dtpark.success){
 					let addingplate = {
-						idmnservice:resp.data.idmservice,
-						idtariff:resp.data.idmtariff,
-						init:resp.data.init,
+						idmnservice:resp.dtpark.data.idmservice,
+						idtariff:resp.dtpark.data.idmtariff,
+						init:resp.dtpark.data.init,
 						parkstate:1,
-						plate:resp.data.plate,
-						plateid:resp.data.idplate
+						plate:resp.dtpark.data.plate,
+						plateid:resp.dtpark.data.idplate
 					};
 					console.log(addingplate);
 					this.parking.unshift(addingplate);
 					console.log(this.parking);
-					this.$q.notify({ color:'positive', message: `Checkin ${resp.data.idpark} correcto!!`, icon: 'done' });
+					this.$q.notify({ color:'positive', message: `Checkin ${resp.idpark} correcto!!`, icon: 'done' });
 					this.wndCheckinStd.state=false;
 					this.iptplate.value="";
 				}
@@ -343,6 +352,7 @@ export default {
 	},
 	computed:{
 		apikey(){ return this.$store.state.account.apikey },
+		usdata(){ return this.$store.state.account.user },
 		capacityparklabel () {
 			if(this.parking){ 
 				return (this.pksactives.length*100/this.maxplaces).toFixed(1)+' %'
@@ -350,13 +360,12 @@ export default {
 		},
 		capacitypark() {
 			if(this.parking){ 
-				return (this.pksactives.length/this.maxplaces).toFixed(1)
+				return parseFloat((this.pksactives.length/this.maxplaces).toFixed(1))
 			}else{ return 0;} 
 		},
-		pksactives(){ if(this.parking) {return this.parking.filter(pk=>{ return pk.parkstate==4||pk.parkstate==1 }); } },
+		pksactives(){ if(this.parking){ return this.parking.filter( pk =>{ return pk.parkstate==4||pk.parkstate==1 }); } },
 		pkschargeds(){ if(this.parking){ return this.parking.filter( pk =>{ return pk.parkstate==3 }); } },
 		freeplaces(){ if(this.parking){ return this.maxplaces-this.pksactives.length}else{return 0;} }
-		// bills(){ if(this.denomsdb){ return this.denomsdb.filter( el => { return el.type==1; }); } },
 	}
 }
 </script>

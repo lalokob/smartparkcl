@@ -5,7 +5,7 @@ export default{
         console.log("%cIndexando Cashdesks...","font-size:2em; color:gold;");
         console.log(data);
         return apipark.post('cashdesk/index',data).then(resp=>{
-            console.log(resp);
+            console.log(resp.data);
             return resp.data;
         }).catch(fail=>{
             console.log("Hay un error importante");
@@ -13,14 +13,11 @@ export default{
         });
     },
     newOpening(data){
-        console.log("%Apertudando Caja...","font-size:2em; color:gold;");
-        console.log(data);
-
+        console.log("%cApertudando Caja...","font-size:2em; color:gold;");
         return apipark.post('cashdesk/opening',data);
     },
     makeCut(data){
         console.log("%cHaciendo Corte...","font-size:2em; color:gold;");
-        console.log(data);
         return apipark.post('cashdesk/cut',data);
     }
 }

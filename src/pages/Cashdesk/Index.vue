@@ -40,6 +40,9 @@
 						</q-toolbar-title>
 				</q-toolbar>
 				<q-card-section>
+					<q-select color="dark" :options="cashiersavls" v-model="userforassign"/>
+				</q-card-section>
+				<q-card-section>
 					<div class="row">
 						<q-markup-table flat>
 							<tr v-for="(bill,idx) in bills" :key="idx+'_bill'" class="text-indigo-5">
@@ -100,7 +103,9 @@ export default {
 		return{
 			cashloading:true,
 			cashdesks:[],
+			cashiersdb:null,
 			denomsdb:null,
+			userforassign:{value:null,label:"Seleccione"},
 			wndCut:{
 				state:false,
 				cash:null,
@@ -126,6 +131,7 @@ export default {
 			let idx = await apipark.index({apikey:this.apikey});
 			this.cashdesks = idx.cashdesks;
 			this.denomsdb = idx.currencies.map(curr=>{curr.model=0; return curr});
+			this.cashiersdb = idx.cashiers;
 			this.cashloading=false;
 		},
 		initCut(idx){
@@ -154,7 +160,6 @@ export default {
 				"cashdesk":{
 					"id":this.wndCut.cash.id,
 					"denoms":denoms,
-					"assignedto":3,
 					"notes":""
 				}
 			}
@@ -180,10 +185,11 @@ export default {
 				"cashdesk":{
 					"id":this.wndOpening.cash.id,
 					"denoms":denoms,
-					"assignto":3,
+					"assignto":this.userforassign.value,
 					"notes":""
 				}
 			}
+			console.log(data);
 			this.wndOpening.opening=true;
 
 			apipark.newOpening(data).then(success=>{
@@ -193,6 +199,7 @@ export default {
 					this.wndOpening.state=false;
 					let idx = this.cashdesks.findIndex(item => item.id==this.wndOpening.cash.id);
 					this.cashdesks[idx]._state=3;
+
 					this.$q.notify({ color:'positive', message: `Listo!! (${resp.rset.openid})`, icon: 'done' });
 					this.resetwndOpening();
 				}
@@ -211,6 +218,13 @@ export default {
 				return $total;
 			}
 			return 0;
+		},
+		cashiersavls(){
+			if(this.cashiersdb){
+				return this.cashiersdb.filter(cashier => !cashier.usingcash).map(cashier =>{
+					return {value:cashier.accid,label:`${cashier.fnames} ${cashier.lnames} (${cashier.nick})`};
+				});
+			}
 		}
 	}
 }

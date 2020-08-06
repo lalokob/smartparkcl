@@ -23,8 +23,8 @@
 			<q-page class="row items-center justify-center">
 				<q-form @submit="tryLogin"  v-if="credentials.formstate">
 					<div class="column">
-						<q-input type="text" color="dark" label="Usuario" stack-label class="ipt q-mb-xs" v-model="credentials.nick" autocomplete="off"/>
-						<q-input type="password" color="dark" label="Contraseña" stack-label class="ipt q-mb-xs" v-model="credentials.pass" autocomplete="off"/>
+						<q-input type="text" color="dark" label="Usuario" stack-label class="ipt q-mb-xs" v-model="credentials.nick" autocapitalize="off" autocomplete="off"/>
+						<q-input type="password" color="dark" label="Contraseña" stack-label class="ipt q-mb-xs" v-model="credentials.pass" autocapitalize="off" autocomplete="off"/>
 						<q-btn outline class="q-pa-sm" color="dark" type="submit" label="entrar" v-if="credentials.nick.length>=2&&credentials.pass.length>=4"/>
 					</div>
 				</q-form>
