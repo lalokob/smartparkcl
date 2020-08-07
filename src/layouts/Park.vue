@@ -2,13 +2,25 @@
 	<q-layout view="hHr Lpr fFr"> <!-- Be sure to play with the Layout demo on docs -->
 
 		<!-- (Optional) The Header -->
-		<q-header class="bg-white text-dark">
+		<q-header class="bg-white text-dark" >
 			<q-toolbar>
+				<q-btn flat icon="fas fa-th" @click="$router.push('/');"/>
 				<q-toolbar-title class="text-center">
 					<span class="text-weight-light"> Estacionamiento </span>
 				</q-toolbar-title>
 			</q-toolbar>
+			<q-toolbar class="column">
+				<q-form class="q-pb-md" @submit="defineParking">
+					<div class="finder row items-center q-py-md">
+						<q-icon color="dark" name="fas fa-car" size="30px" class="col"/>
+						<input color="dark" outlined ref="_mginput" type="text" class="q-px-md col-8 iptplate text-uppercase text-h3 bg-none" v-model="iptplate.value" :disable="iptplate.state" autocomplete="off"/>
+						<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.state||iptplate.value.length<3"/>
+					</div>
+				</q-form>
+			</q-toolbar>
+			<q-separator/>
 		</q-header>
+		
 
 		<!-- (Optional) The Footer -->
 		<q-footer class="bg-white text-dark">
@@ -66,8 +78,7 @@
 			<div>
 				<div class="text-weight-light" v-for="(park,idxpk) in pkschargeds" :key="'pksch_'+idxpk">
 					<q-card flat>
-						<q-card-section>
-							Folio: {{ park.id }}<br/>
+						<q-card-section>					
 							Placa: {{ park.plate }}<br/>
 							Salida: {{ park.ends }}
 						</q-card-section>
@@ -80,15 +91,6 @@
 		<q-page-container>
 			<!-- This is where pages get injected -->
 			<q-page class="column items-center justify-center">
-				<div class="bg-white q-pt-md q-mb-md">
-					<q-form @submit="defineParking">
-						<div class="finder row items-center q-py-md">
-							<q-icon color="dark" name="fas fa-car" size="30px"  class="col"/>
-							<input color="dark" outlined ref="iptplate_search" type="text" class="q-px-md col-8 iptplate text-uppercase text-h3 bg-none" v-model="iptplate.value" :disable="iptplate.state" autocomplete="off"/>
-							<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.state||iptplate.value.length<3"/>
-						</div>
-					</q-form>
-				</div>
 				
 				<div class="row q-mt-md q-pt-md q-pl-md justify-center">
 					<!-- { "plateid": 24, "plate": "FGH-123", "idmnservice": 1, "init": "2020-08-01 02:14:00", "idtariff": 1, "parkstate": "1" } -->
@@ -113,22 +115,26 @@
 					</div>
 				</div>
 				<!-- CHECKIN STANDARD -->
-				<q-dialog v-model="wndCheckinStd.state" @before-hide="iptplate.value=''">
+				<q-dialog v-model="wndCheckinStd.state" @show="bfShowCheckinStd" @hide="mginputFocus">
 					<q-card v-if="wndCheckinStd.case">
 						<q-toolbar>
-							<q-toolbar-title class="text-center">
+							<q-toolbar-title>
 								<span class="text-weight-light text-uppercase"> {{ iptplate.value }} </span>
 							</q-toolbar-title>
 							<q-btn rounded flat color="negative" icon="close" v-close-popup/>
 						</q-toolbar>
 
 						<q-card-section>
-							<q-select color="dark" v-model="usetariff" :options="tariffsdb" label="Tarifa" />
-							<q-input color="dark" v-model="notascheckinstd" stack-label label="notas" />
+							<q-form @submit="checkInSTD">
+								<q-select color="dark" v-model="usetariff" :options="tariffsdb" label="Tarifa" />
+								<q-input color="dark" v-model="notascheckinstd" stack-label label="notas" ref="_chkinnotes" />
+
+								<q-card-actions align="center">
+									<q-btn :loadign="wndCheckinStd.incheckin" :disabled="wndCheckinStd.incheckin" type="submit" outline label="Checkin" />
+								</q-card-actions>
+							</q-form>
 						</q-card-section>
-						<q-card-actions align="center">
-							<q-btn outline label="Checkin" @click="checkInSTD()"/>
-						</q-card-actions>
+						
 					</q-card>
 					<q-card v-else>
 						<q-card-section>
@@ -137,7 +143,7 @@
 					</q-card>
 				</q-dialog>
 
-				<q-dialog v-model="wndPreCheckOutStd.state" @hide="resetPrecheckout" @before-hide="iptplate.value=''">
+				<q-dialog v-model="wndPreCheckOutStd.state" @show="afShowCheckOut" @hide="resetPrecheckout();mginputFocus();">
 					<q-card>
 						<q-toolbar>
 							<q-toolbar-title >
@@ -179,12 +185,16 @@
 							</q-card-section>
 
 							<q-card-section  v-if="usdata.rolid==1||usdata.rol==2">
-								<q-form @submit="makeCharge()">
+								<q-form @submit="makeCharge">
 									<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
-									<q-input color="dark" type="number" v-model="wndPreCheckOutStd.paytotal" stack-label label="pago"/>
+									<q-input color="dark" type="number" ref="iptpayment" v-model="wndPreCheckOutStd.paytotal" stack-label label="Pago"/>
 
 									<q-card-actions align="center" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
-										<q-btn type="submit" color="primary" full-width flat label="pagar"/>
+										<q-btn 
+											:disabled="wndPreCheckOutStd.paying" 
+											:loading="wndPreCheckOutStd.paying" 
+											type="submit" color="primary" 
+											flat label="pagar"/>
 									</q-card-actions>
 								</q-form>
 								<div class="text-center q-pa-md" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
@@ -213,13 +223,15 @@ export default {
 			iptplate:{state:false,value:""},
 			wndCheckinStd:{
 				state:false,
-				case:null
+				case:null,
+				incheckin:false
 			},
 			wndPreCheckOutStd:{
 				state:false,
 				topay:null,
 				dtpark:null,
 				paytotal:0,
+				paying:false
 			},
 			tariffsdb:[
 				{value:1,label:"Publico"},
@@ -231,9 +243,7 @@ export default {
 			],
 			usetariff:{value:1,label:"Publico"},
 			usepayway:{value:1,label:"Efectivo"},
-			notascheckinstd:"",
-			progress1:0.5,
-			progress2:0.8
+			notascheckinstd:""
 		}
 	},
 	beforeMount(){
@@ -242,6 +252,7 @@ export default {
 	mounted(){
 		console.log("%cCargando data dle usuario","font-size:2em;");
 		console.log(this.usdata);
+		this.$refs._mginput.focus();
 	},
 	methods:{
 		async index(){
@@ -256,6 +267,19 @@ export default {
 			this.iptplate.value=plate;
 			this.defineParking();
 		},
+		afShowCheckOut(){
+			this.$refs.iptpayment.focus();
+			this.wndPreCheckOutStd.paytotal="";
+		},
+		bfShowCheckinStd(){// despues de desplegar ventana de checkin standard
+			this.notascheckinstd="";
+			this.$refs._chkinnotes.focus();
+		},
+		mginputFocus(){
+			this.notascheckinstd="";
+			this.iptplate.value='';
+			this.$refs._mginput.focus();
+		},
 		defineParking(){
 			let data = {
 				apikey:this.apikey,
@@ -269,7 +293,6 @@ export default {
 
 				switch (resp.parkexs) {
 					case 404: case 205:
-						console.log("Realizar checkin STD, continuar?");
 						this.wndCheckinStd.state=true;
 					break;
 
@@ -288,37 +311,44 @@ export default {
 			});
 		},
 		makeCharge(){
-			// console.log(this.wndPreCheckOutStd);
-			let data = {
-				apikey:this.apikey,
-				topay: {
-					"init": this.wndPreCheckOutStd.dtpark.init,
-					"plate": this.wndPreCheckOutStd.dtpark.plate,
-					"plateid": this.wndPreCheckOutStd.dtpark.plateid,
-					"idtariff": this.wndPreCheckOutStd.dtpark.idtariff,
-					"parkid": this.wndPreCheckOutStd.dtpark.parkid,
-					"idmainservice": this.wndPreCheckOutStd.dtpark.idmainservice,
-					"time_calc": this.wndPreCheckOutStd.topay.time_calc,
-					"parts":[
-						{ "method":this.usepayway.value, "cant":this.wndPreCheckOutStd.paytotal, "notes":"" }
-					]
+			if(this.wndPreCheckOutStd.paytotal>=this.wndPreCheckOutStd.topay.totalcost){
+				// console.log(this.wndPreCheckOutStd);
+				this.wndPreCheckOutStd.paying=true;
+				let data = {
+					apikey:this.apikey,
+					topay: {
+						"init": this.wndPreCheckOutStd.dtpark.init,
+						"plate": this.wndPreCheckOutStd.dtpark.plate,
+						"plateid": this.wndPreCheckOutStd.dtpark.plateid,
+						"idtariff": this.wndPreCheckOutStd.dtpark.idtariff,
+						"parkid": this.wndPreCheckOutStd.dtpark.parkid,
+						"idmainservice": this.wndPreCheckOutStd.dtpark.idmainservice,
+						"time_calc": this.wndPreCheckOutStd.topay.time_calc,
+						"parts":[
+							{ "method":this.usepayway.value, "cant":this.wndPreCheckOutStd.paytotal, "notes":"" }
+						]
+					}
 				}
+				
+				apipark.makeCharge(data).then(success=>{
+					let resp = success.data;
+					console.log(resp);
+					let idx = this.parking.findIndex(item=>item.plate==this.wndPreCheckOutStd.dtpark.plate);
+					this.parking[idx].parkstate=3;
+					this.parking[idx].ends=resp.printed.park.ends;
+					this.wndPreCheckOutStd.state=false;
+					this.wndPreCheckOutStd.paying=false;
+
+				}).catch(fail=>{
+					console.log(fail);
+					this.wndPreCheckOutStd.paying=false;
+				});
+			}else{
+				this.$q.notify({ color:'info', message: `Olvidaste cubrir el total`, icon: 'far fa-grin-beam-sweat' });
 			}
-			
-			apipark.makeCharge(data).then(success=>{
-				let resp = success.data;
-				console.log(resp);
-				this.wndPreCheckOutStd.state=false;
-				let idx = this.parking.findIndex(item=>item.plate==this.wndPreCheckOutStd.dtpark.plate);
-				this.parking.splice(idx,1);
-
-			}).catch(fail=>{
-				console.log(fail);
-			});
-
-			console.log(data);
 		},
 		checkInSTD(){
+			this.wndCheckinStd.incheckin=true;
 			let data = {
 				apikey:this.apikey,
 				plate:this.iptplate.value,
@@ -343,6 +373,7 @@ export default {
 					console.log(this.parking);
 					this.$q.notify({ color:'positive', message: `Checkin ${resp.idpark} correcto!!`, icon: 'done' });
 					this.wndCheckinStd.state=false;
+					this.wndCheckinStd.incheckin=false;
 					this.iptplate.value="";
 				}
 			}).catch(fail=>{
@@ -372,8 +403,7 @@ export default {
 <style lang="scss">
 	.ds{border:1px solid red;}
 	.finder{
-		border: 2px solid #1D1D1D;
-		border-radius:10px;
+		border-bottom: 2px solid #d1d1d1;
 	}
 	.iptplate{
 		text-align: center;

@@ -26,7 +26,6 @@
 						<template v-if="cash._state==3">
 							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
 						</template>
-						
 					</q-card-actions>
 				</q-card-section>
 			</q-card>
@@ -40,7 +39,7 @@
 						</q-toolbar-title>
 				</q-toolbar>
 				<q-card-section>
-					<q-select color="dark" :options="cashiersavls" v-model="userforassign"/>
+					<q-select color="dark" :options="cashiersavls" v-model="userforassign" stack-label label="Asignar a:"/>
 				</q-card-section>
 				<q-card-section>
 					<div class="row">
