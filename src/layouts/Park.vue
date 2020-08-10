@@ -300,10 +300,7 @@ export default {
 						console.log("Hacer checkout");
 						this.wndPreCheckOutStd.state=true;
 						this.wndPreCheckOutStd.topay=resp.precheckout.topay;
-						this.wndPreCheckOutStd.dtpark=resp.precheckout.dtpark;
-
-						console.log(this.wndPreCheckOutStd.topay);
-						console.log(this.wndPreCheckOutStd.dtpark);	
+						this.wndPreCheckOutStd.dtpark=resp.precheckout.dtpark;	
 					break;
 				}
 			}).catch(fail=>{
@@ -333,7 +330,7 @@ export default {
 				apipark.makeCharge(data).then(success=>{
 					let resp = success.data;
 					console.log(resp);
-					let idx = this.parking.findIndex(item=>item.plate==this.wndPreCheckOutStd.dtpark.plate);
+					let idx = this.parking.findIndex(item=>item.parkid==this.wndPreCheckOutStd.dtpark.parkid);
 					this.parking[idx].parkstate=3;
 					this.parking[idx].ends=resp.printed.park.ends;
 					this.wndPreCheckOutStd.state=false;
