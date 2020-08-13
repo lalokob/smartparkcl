@@ -14,7 +14,7 @@
 					<div class="finder row items-center q-py-md">
 						<q-icon color="dark" name="fas fa-car" size="30px" class="col"/>
 						<input color="dark" outlined ref="_mginput" type="text" class="q-px-md col-8 iptplate text-uppercase text-h3 bg-none" v-model="iptplate.value" :disable="iptplate.state" autocomplete="off"/>
-						<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.state||iptplate.value.length<3"/>
+						<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.defining" :loading="iptplate.defining"/>
 					</div>
 				</q-form>
 			</q-toolbar>
@@ -76,12 +76,18 @@
 			<q-separator/>
 			<div>
 				<div class="text-weight-light" v-for="(park,idxpk) in pkschargeds" :key="'pksch_'+idxpk">
-					<q-card flat>
-						<q-card-section>					
-							Placa: {{ park.plate }}<br/>
-							Salida: {{ park.ends }}
-						</q-card-section>
-					</q-card>
+					<transition appear
+						enter-active-class="animated flipInX"
+						leave-active-class="animated flipOutX"
+					>
+						<q-card flat>
+							<q-card-section>					
+								Folio: {{ park.parkid }}<br/>
+								Placa: {{ park.plate }}<br/>
+								Salida: {{ park.ends }}
+							</q-card-section>
+						</q-card>
+					</transition>
 					<q-separator/>
 				</div>
 			</div>
@@ -96,12 +102,13 @@
 					<div v-for="(park,idxpk) in pksactives" :key="idxpk">
 						<transition appear
 							enter-active-class="animated zoomInUp"
-							leave-active-class="animated zoomOutRight"
+							leave-active-class="animated flipOutX"
 						>
 							<q-card class="q-mr-md q-mb-md" flat bordered>
 								<q-card-section horizontal>
 									<q-card-section class="column justify-center">
-										<div class="text-h6">{{ park.plate }}</div>
+										<div class="text-h5">{{ park.parkid }}</div>
+										<div class="text-bold">{{ park.plate }}</div>
 										<div clasS="text-caption">{{ park.init }}</div>
 									</q-card-section>
 									<q-separator vertical/>
@@ -224,7 +231,7 @@ export default {
 			parking:null,
 			maxplaces:90,
 			lrDrawer: true,
-			iptplate:{state:false,value:""},
+			iptplate:{state:false,value:"",defining:false},
 			wndCheckinStd:{
 				state:false,
 				case:null,
@@ -287,29 +294,52 @@ export default {
 		defineParking(){
 			let data = {
 				apikey:this.apikey,
-				mginput:this.iptplate.value
+				mginput:null
 			};
+			let trymginput = false;// aurotiza el paso a la paeticion
+			this.iptplate.defining=true;// precargando el loading
 
-			apipark.magic(data).then(success=>{
-				let resp = success.data;
-				console.log(resp);
-				this.wndCheckinStd.case=resp.cashavls;	
+			if(!this.iptplate.value){// si el campo esta vacio, se crea una placa random
+				console.log("%cCrear placa random ","font-size:2em;color:gold");
+				let rndmplate = Date.now();
+				this.iptplate.value = rndmplate;
+				data.mginput = rndmplate;
+				trymginput=true;
+			}else if(this.iptplate.value.length>=3){// si no esta vacio, al menos debe tener 3 caracteres
+				console.log("%cCrear un parking por placa","font-size:2em;color:gold");
+				data.mginput = this.iptplate.value.toUpperCase();
+				trymginput=true;
+			}else{
+				alert("no es una placa valida");
+				this.mginputFocus();
+			}
 
-				switch (resp.parkexs) {
-					case 404: case 205:
-						this.wndCheckinStd.state=true;
-					break;
+			console.log(data);
 
-					case 200:
-						console.log("Hacer checkout");
-						this.wndPreCheckOutStd.state=true;
-						this.wndPreCheckOutStd.topay=resp.precheckout.topay;
-						this.wndPreCheckOutStd.dtpark=resp.precheckout.dtpark;	
-					break;
-				}
-			}).catch(fail=>{
-				console.log(fail);
-			});
+			if(trymginput){
+				apipark.magic(data).then(success=>{
+					let resp = success.data;
+					console.log(resp);
+					this.wndCheckinStd.case=resp.cashavls;	
+
+					switch (resp.parkexs) {
+						case 404: case 205:
+							this.wndCheckinStd.state=true;
+						break;
+
+						case 200:
+							console.log("Hacer checkout");
+							this.wndPreCheckOutStd.state=true;
+							this.wndPreCheckOutStd.topay=resp.precheckout.topay;
+							this.wndPreCheckOutStd.dtpark=resp.precheckout.dtpark;	
+						break;
+					}
+				}).catch(fail=>{
+					console.log(fail);
+				});
+			}
+
+			this.iptplate.defining=false;
 		},
 		makeCharge(){
 			if(this.wndPreCheckOutStd.paytotal>=this.wndPreCheckOutStd.topay.totalcost){
@@ -350,38 +380,48 @@ export default {
 			}
 		},
 		checkInSTD(){
-			this.wndCheckinStd.incheckin=true;
 			let data = {
 				apikey:this.apikey,
 				plate:this.iptplate.value,
 				tariff:this.usetariff,
 				notes:this.notascheckinstd
 			};
-			apipark.makeCheckInStd(data).then(success=>{
-				let resp = success.data;
-				console.log(resp);
 
-				if(resp.dtpark.success){
-					let addingplate = {
-						idmnservice:resp.dtpark.data.idmservice,
-						idtariff:resp.dtpark.data.idmtariff,
-						init:resp.dtpark.data.init,
-						parkstate:1,
-						parkid: resp.idpark,
-						plate:resp.dtpark.data.plate,
-						plateid:resp.dtpark.data.idplate
-					};
-					console.log(addingplate);
-					this.parking.unshift(addingplate);
-					console.log(this.parking);
-					this.$q.notify({ color:'positive', message: `Checkin ${resp.idpark} correcto!!`, icon: 'done' });
-					this.wndCheckinStd.state=false;
-					this.wndCheckinStd.incheckin=false;
-					this.iptplate.value="";
-				}
-			}).catch(fail=>{
-				console.log(fail);
-			});
+			if(this.notascheckinstd.length>=5){
+				this.wndCheckinStd.incheckin=true;
+				apipark.makeCheckInStd(data).then(success=>{
+					let resp = success.data;
+					console.log(resp);
+
+					if(resp.dtpark.success){
+						let addingplate = {
+							idmnservice:resp.dtpark.data.idmservice,
+							idtariff:resp.dtpark.data.idmtariff,
+							init:resp.dtpark.data.init,
+							parkstate:1,
+							parkid: resp.idpark,
+							plate:resp.dtpark.data.plate,
+							plateid:resp.dtpark.data.idplate
+						};
+						console.log(addingplate);
+						this.parking.unshift(addingplate);
+						console.log(this.parking);
+						this.$q.notify({ color:'positive', message: `Checkin ${resp.idpark} correcto!!`, icon: 'done' });
+						this.wndCheckinStd.state=false;
+						this.wndCheckinStd.incheckin=false;
+						this.iptplate.value="";
+					}
+				}).catch(fail=>{
+					console.log(fail);
+				});
+			}else{
+				this.$refs._chkinnotes.focus();
+				this.$q.notify({
+					message: 'Ingrese notas del vehiculo',
+					color: 'negative',
+					icon: 'fas fa-grin-beam-sweat'
+				});
+			}
 		}
 	},
 	computed:{

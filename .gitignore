@@ -30,3 +30,6 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+# archivos indinamicos
+/src/boot/apipark.js
