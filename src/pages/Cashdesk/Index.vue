@@ -13,20 +13,48 @@
 				class="q-mr-md q-mb-md" flat bordered
 			>
 				<q-card-section horizontal>
-					<q-card-section class="column justify-center">
-						<div class="text-h6">Caja {{ cash.id }}</div>
-						<div>{{ cashstates[cash._state] }}</div>
-					</q-card-section>
-					<q-separator vertical/>
-					<q-card-actions vertical class="justify-around q-px-md">
-						<template v-if="cash._state<3">
+					<template v-if="cash._state==1"><!-- CAJA NUNCA UTILIZADA -->
+						<q-card-section class="column justify-center">
+							<div class="text-h6">Caja {{ cash.id }}</div>
+							<div>{{ cashstates[cash._state] }}</div>
+						</q-card-section>
+						<q-separator vertical/>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
 							<q-btn @click="initOpening(cashidx)" flat round color="primary" icon="far fa-play-circle" />
-							<!-- <q-btn flat round color="red" icon="fas fa-archive" /> -->
-						</template>
-						<template v-if="cash._state==3">
+						</q-card-actions>
+					</template>
+
+					<template v-if="cash._state==2"><!-- CAJA con corte previo -->
+						<q-card-section class="column justify-center">
+							<div> <span class="text-h6"> Caja {{ cash.id }} </span> <span>{{ cashstates[cash._state] }}</span> </div>
+							<div>Ultima apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
+							<div>Asignacion: {{ cash.opening.ustonames }} {{ cash.opening.ustolnames }}</div>
+							<div>Ultimo corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
+						</q-card-section>
+						<q-separator vertical/>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
+							<q-btn v-if="recycleOpening(cash.opening,cash.cut)" @click="reactiveOpening(cash.opening,cash.id)" flat round color="orange-10" icon="fas fa-play-circle" :loading="wndOpening.reopen" :disable="wndOpening.reopen"/>
+							<q-btn v-else @click="initOpening(cashidx)" flat round color="primary" icon="far fa-play-circle" />
+						</q-card-actions>
+					</template>
+
+					<template v-if="cash._state==3"><!-- CAJA en uso -->
+						<q-card-section class="column justify-center">
+							<div> <span class="text-h6"> Caja {{ cash.id }} </span>: <span>{{ cashstates[cash._state] }}</span> </div>
+							<div>Ultima Apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
+							<div>Ultima Asignacion: {{ cash.opening.ustonames }} {{ cash.opening.ustolnames }} </div>
+							<div v-if="cash.cut">Corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
+						</q-card-section>
+						<q-separator vertical/>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
 							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
-						</template>
-					</q-card-actions>
+							<!-- <q-btn flat round color="accent" icon="fas fa-upload" />
+							<q-btn flat round color="positive" icon="fas fa-download" /> -->
+						</q-card-actions>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==2">
+							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
+						</q-card-actions>
+					</template>
 				</q-card-section>
 			</q-card>
 		</div>
@@ -96,6 +124,7 @@
 
 <script>
 import apipark from '../../API/cashdesk'
+import { date } from 'quasar'
 export default {
 	// name: 'PageName',
 	data(){
@@ -113,7 +142,8 @@ export default {
 			wndOpening:{
 				state:false,
 				cash:null,
-				opening:false
+				opening:false,
+				reopen:false
 			},
 			cashstates:{
 				1:"Nueva/disponible para apertura",
@@ -141,6 +171,26 @@ export default {
 			this.wndOpening.cash=this.cashdesks[idx];
 			this.wndOpening.state=true;
 		},
+		reactiveOpening(opening,cashid){
+			console.log(opening);
+			this.wndOpening.reopen=true;
+
+			let data = {
+				"apikey":this.apikey,
+				"opening":opening
+			}
+
+			apipark.reactiveOpening(data).then(success=>{
+				let resp = success.data;
+				console.log(resp);
+				this.wndOpening.reopen=false;
+				let idx = this.cashdesks.findIndex(item => item.id==cashid);
+				this.cashdesks[idx]._state=3;
+				this.cashdesks[idx].cut=null;
+			}).catch(fail=>{
+				console.log(fail);
+			});
+		},
 		resetwndCut(){
 			this.wndCut.cash=null;
 			this.wndCut.state=false;
@@ -165,11 +215,12 @@ export default {
 			this.wndCut.cuting=true;
 
 			apipark.makeCut(data).then(success=>{
-				let resp = success.data
+				let resp = success.data;
 				console.log(resp);
 				this.$q.notify({ color:'positive', message: `Corte ${resp.resume.cut.id} concretado!!`, icon: 'done' });				
 				let idx = this.cashdesks.findIndex(item => item.id==this.wndCut.cash.id);
 				this.cashdesks[idx]._state=2;
+				this.cashdesks[idx].cut=resp.resume.openandcut.cut;
 				this.resetwndCut();
 			}).catch(fail=>{
 				console.log(fail);
@@ -198,7 +249,9 @@ export default {
 					if(resp){
 						this.wndOpening.state=false;
 						let idx = this.cashdesks.findIndex(item => item.id==this.wndOpening.cash.id);
+						this.cashdesks[idx].opening=resp.rset.opening;
 						this.cashdesks[idx]._state=3;
+						console.log(this.cashdesks[idx]);
 
 						this.$q.notify({ color:'positive', message: `Listo!! (${resp.rset.openid})`, icon: 'done' });
 						this.resetwndOpening();
@@ -212,6 +265,40 @@ export default {
 		}
 	},
 	computed:{
+		recycleOpening(){
+			return (opening,cut)=>{
+				if(opening&&cut){
+					let now = Date.now();
+					let opentime = Date.parse(opening.init);
+					let diff = date.getDateDiff(now, opentime, 'days');
+
+					return diff==0?true:false;
+				}
+				return false;
+			}
+		},
+		humantime(){ return time =>{ 
+				let now = Date.now(); 
+				let timecalc = Date.parse(time);
+				let diff = date.getDateDiff(now, timecalc, 'days');
+
+				switch (diff) {
+					case 1:
+							return 'Ayer a las '+date.formatDate(timecalc, 'hh:mm a');
+						break;
+				
+					case 0:
+							return 'Hoy a las '+date.formatDate(timecalc, 'hh:mm a');
+						break;
+
+					default:
+							return `Hace ${diff} dias, a las `+date.formatDate(timecalc, 'hh:mm a');
+						break;
+				}
+
+				return diff;
+			}
+		},
 		apikey(){ return this.$store.state.account.apikey },
 		bills(){ if(this.denomsdb){ return this.denomsdb.filter( el => { return el.type==1; }); } },
 		coins(){ if(this.denomsdb){ return this.denomsdb.filter( el => { return el.type==2; }); } },
@@ -228,7 +315,8 @@ export default {
 					return {value:cashier.accid,label:`${cashier.fnames} ${cashier.lnames} (${cashier.nick})`};
 				});
 			}
-		}
+		},
+		user(){ return this.$store.state.account.user },
 	}
 }
 </script>

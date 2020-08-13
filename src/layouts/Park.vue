@@ -31,7 +31,6 @@
 			</q-toolbar>
 		</q-footer>
 
-		<!-- (Optional) A Drawer; you can add one more with side="right" or change this one's side -->
 		<q-drawer v-model="lrDrawer" side="right" bordered content-class="bg-white">
 			<div class="q-pa-md">
 				<q-card class="text-weight-light">
@@ -58,7 +57,7 @@
 							<span class="text-h5">{{ freeplaces }}</span>
 						</q-card-section>
 					</q-card-section>
-					<template  v-if="usdata.rolid==1||usdata.rol==2">
+					<template v-if="usdata.rolid==1||usdata.rolid==2">
 						<q-separator />
 						<q-card-section horizontal>
 							<q-card-section class="col column text-center">
@@ -67,7 +66,7 @@
 							</q-card-section>						
 							<q-card-section class="col column text-center">
 								<span class="text-caption">Cobros:</span>
-								<span class="text-h6">{{ parking ? pkschargeds.length : 0 }}</span>
+								<span class="text-h5">{{ parking ? pkschargeds.length : 0 }}</span>
 							</q-card-section>
 						</q-card-section>
 					</template>
@@ -95,23 +94,28 @@
 				<div class="row q-mt-md q-pt-md q-pl-md justify-center">
 					<!-- { "plateid": 24, "plate": "FGH-123", "idmnservice": 1, "init": "2020-08-01 02:14:00", "idtariff": 1, "parkstate": "1" } -->
 					<div v-for="(park,idxpk) in pksactives" :key="idxpk">
-						<q-card class="q-mr-md q-mb-md" flat bordered>
-							<q-card-section horizontal>
-								<q-card-section class="column justify-center">
-									<div class="text-h6">{{ park.plate }}</div>
-									<div clasS="text-caption">{{ park.init }}</div>
+						<transition appear
+							enter-active-class="animated zoomInUp"
+							leave-active-class="animated zoomOutRight"
+						>
+							<q-card class="q-mr-md q-mb-md" flat bordered>
+								<q-card-section horizontal>
+									<q-card-section class="column justify-center">
+										<div class="text-h6">{{ park.plate }}</div>
+										<div clasS="text-caption">{{ park.init }}</div>
+									</q-card-section>
+									<q-separator vertical/>
+									<q-card-actions vertical class="justify-around q-px-md">
+										<template v-if="park.parkstate==1||park.parkstate==4">
+											<q-btn flat round :color="park.parkstate==1?'primary':'accent'" icon="fas fa-angle-double-up" @click="autoCheckPark(park.plate);" />
+										</template>
+										<template v-if="park.parkstate==2">
+											<q-btn flat round color="red" icon="fas fa-cut" />
+										</template>
+									</q-card-actions>
 								</q-card-section>
-								<q-separator vertical/>
-								<q-card-actions vertical class="justify-around q-px-md">
-									<template v-if="park.parkstate==1||park.parkstate==4">
-										<q-btn flat round :color="park.parkstate==1?'primary':'accent'" icon="fas fa-angle-double-up" @click="autoCheckPark(park.plate);" />
-									</template>
-									<template v-if="park.parkstate==2">
-										<q-btn flat round color="red" icon="fas fa-cut" />
-									</template>
-								</q-card-actions>
-							</q-card-section>
-						</q-card>
+							</q-card>
+						</transition>
 					</div>
 				</div>
 				<!-- CHECKIN STANDARD -->
@@ -184,7 +188,7 @@
 								</q-markup-table>
 							</q-card-section>
 
-							<q-card-section  v-if="usdata.rolid==1||usdata.rol==2">
+							<q-card-section  v-if="usdata.rolid==1||usdata.rolid==2">
 								<q-form @submit="makeCharge">
 									<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
 									<q-input color="dark" type="number" ref="iptpayment" v-model="wndPreCheckOutStd.paytotal" stack-label label="Pago"/>
@@ -331,6 +335,7 @@ export default {
 					let resp = success.data;
 					console.log(resp);
 					let idx = this.parking.findIndex(item=>item.parkid==this.wndPreCheckOutStd.dtpark.parkid);
+					console.log(this.parking[idx]);
 					this.parking[idx].parkstate=3;
 					this.parking[idx].ends=resp.printed.park.ends;
 					this.wndPreCheckOutStd.state=false;
@@ -362,6 +367,7 @@ export default {
 						idtariff:resp.dtpark.data.idmtariff,
 						init:resp.dtpark.data.init,
 						parkstate:1,
+						parkid: resp.idpark,
 						plate:resp.dtpark.data.plate,
 						plateid:resp.dtpark.data.idplate
 					};

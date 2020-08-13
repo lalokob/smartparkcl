@@ -16,6 +16,11 @@ export default{
         console.log("%cApertudando Caja...","font-size:2em; color:gold;");
         return apipark.post('cashdesk/opening',data);
     },
+    reactiveOpening(data){
+        console.log("%cRepertudando Caja...","font-size:2em; color:gold;");
+        console.log(data);
+        return apipark.post('cashdesk/reactive',data);
+    },
     makeCut(data){
         console.log("%cHaciendo Corte...","font-size:2em; color:gold;");
         return apipark.post('cashdesk/cut',data);
