@@ -43,6 +43,9 @@ export default {
 			credentials:{ nick:"", pass:"", formstate:true }
 		}
 	},
+	created(){
+   		this.$q.addressbarColor.set('#1D1D1D');
+  	},
 	methods:{
 		tryLogin(){
 			let data = {

@@ -86,7 +86,7 @@ module.exports = function (/* ctx */) {
       importStrategy: 'auto',
 
       // Quasar plugins
-      plugins: ['Notify']
+      plugins: ['Notify','AddressbarColor']
     },
 
     animations: 'all', // --- includes all animations
@@ -103,12 +103,12 @@ module.exports = function (/* ctx */) {
       workboxPluginMode: 'GenerateSW', // 'GenerateSW' or 'InjectManifest'
       workboxOptions: {}, // only for GenerateSW
       manifest: {
-        name: `Smartpark`,
+        name: `Smartpark - Grupo Vizcarra`,
         short_name: `Smartpark`,
         description: `aplicaicon de gestion de estacionamientos`,
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#ffffff',
+        background_color: '#1D1D1D',
         theme_color: '#027be3',
         icons: [
           {

@@ -365,11 +365,11 @@ export default {
 					let resp = success.data;
 					console.log(resp);
 					let idx = this.parking.findIndex(item=>item.parkid==this.wndPreCheckOutStd.dtpark.parkid);
+					this.wndPreCheckOutStd.state=false;
+					this.wndPreCheckOutStd.paying=false;
 					console.log(this.parking[idx]);
 					this.parking[idx].parkstate=3;
 					this.parking[idx].ends=resp.printed.park.ends;
-					this.wndPreCheckOutStd.state=false;
-					this.wndPreCheckOutStd.paying=false;
 
 				}).catch(fail=>{
 					console.log(fail);
