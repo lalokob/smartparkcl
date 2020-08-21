@@ -18,9 +18,10 @@ const routes = [
 	},
 	{
 		path: '/cajas',
-		component: () => import('layouts/Cashdesk.vue'),
+		component: () => import('layouts/Cashdesks.vue'),
 		children: [
-			{ path: '', component: () => import('pages/Cashdesk/Index.vue') }
+			{ path: '', component: () => import('pages/Cashdesks/Index.vue') },
+			{ path: ':id', component: () => import('pages/Cashdesks/Cash.vue') }
 		],
 	},
 

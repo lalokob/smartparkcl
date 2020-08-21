@@ -13,7 +13,54 @@
 				class="q-mr-md q-mb-md" flat bordered
 			>
 				<q-card-section horizontal>
-					<template v-if="cash._state==1"><!-- CAJA NUNCA UTILIZADA -->
+					<template v-if="cash._state==1">
+						<q-card-section class="column justify-center">
+							<div class="text-h6">Caja {{ cash.id }}</div>
+							<div>{{ cashstates[cash._state] }}</div>
+						</q-card-section>
+						<q-separator vertical/>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
+							<q-btn flat round color="dark" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
+							<q-btn @click="initOpening(cashidx)" flat round color="primary" icon="far fa-play-circle" />
+						</q-card-actions>
+					</template>
+
+					<template v-if="cash._state==2">
+						<q-card-section class="column justify-center">
+							<div> <span class="text-h6"> Caja {{ cash.id }} </span> <span>{{ cashstates[cash._state] }}</span> </div>
+							<div>Ultima apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
+							<div>Asignacion: {{ cash.opening.ustonames }} {{ cash.opening.ustolnames }}</div>
+							<div>Ultimo corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
+						</q-card-section>
+						<q-separator vertical/>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
+							<q-btn flat round color="dark" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
+							<q-btn v-if="recycleOpening(cash.opening,cash.cut)" @click="reactiveOpening(cash.opening,cash.id)" flat round color="orange-10" icon="fas fa-play-circle" :loading="wndOpening.reopen" :disable="wndOpening.reopen"/>
+							<q-btn v-else @click="initOpening(cashidx)" flat round color="primary" icon="far fa-play-circle" />
+						</q-card-actions>
+					</template>
+
+					<template v-if="cash._state==3">
+						<q-card-section class="column justify-center">
+							<div> <span class="text-h6"> Caja {{ cash.id }} </span>: <span>{{ cashstates[cash._state] }}</span> </div>
+							<div>Ultima Apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
+							<div>Ultima Asignacion: {{ cash.opening.ustonames }} {{ cash.opening.ustolnames }} </div>
+							<div v-if="cash.cut">Corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
+						</q-card-section>
+						<q-separator vertical/>
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
+							<q-btn flat round color="dark" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
+							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
+						</q-card-actions>
+
+						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==2">
+							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
+						</q-card-actions>
+					</template>
+				</q-card-section>
+
+				<!-- <q-card-section horizontal>
+					<template v-if="cash._state==1">
 						<q-card-section class="column justify-center">
 							<div class="text-h6">Caja {{ cash.id }}</div>
 							<div>{{ cashstates[cash._state] }}</div>
@@ -24,7 +71,7 @@
 						</q-card-actions>
 					</template>
 
-					<template v-if="cash._state==2"><!-- CAJA con corte previo -->
+					<template v-if="cash._state==2">
 						<q-card-section class="column justify-center">
 							<div> <span class="text-h6"> Caja {{ cash.id }} </span> <span>{{ cashstates[cash._state] }}</span> </div>
 							<div>Ultima apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
@@ -38,7 +85,7 @@
 						</q-card-actions>
 					</template>
 
-					<template v-if="cash._state==3"><!-- CAJA en uso -->
+					<template v-if="cash._state==3">
 						<q-card-section class="column justify-center">
 							<div> <span class="text-h6"> Caja {{ cash.id }} </span>: <span>{{ cashstates[cash._state] }}</span> </div>
 							<div>Ultima Apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
@@ -46,16 +93,11 @@
 							<div v-if="cash.cut">Corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
 						</q-card-section>
 						<q-separator vertical/>
-						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
-							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
-							<!-- <q-btn flat round color="accent" icon="fas fa-upload" />
-							<q-btn flat round color="positive" icon="fas fa-download" /> -->
-						</q-card-actions>
-						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==2">
+						<q-card-actions vertical class="justify-around q-px-md">
 							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
 						</q-card-actions>
 					</template>
-				</q-card-section>
+				</q-card-section> -->
 			</q-card>
 		</div>
 
@@ -262,7 +304,11 @@ export default {
 			}else{
 				this.$q.notify({ color:'warning', message: `Debes seleccionar un cajero`, icon: 'error_outline' });
 			}
+		},
+		entry(cashid){
+			console.log(`navegar en caja ${cashid}`);
 		}
+
 	},
 	computed:{
 		recycleOpening(){

@@ -86,7 +86,7 @@ module.exports = function (/* ctx */) {
       importStrategy: 'auto',
 
       // Quasar plugins
-      plugins: ['Notify','AddressbarColor']
+      plugins: ['Notify','AddressbarColor','Loading']
     },
 
     animations: 'all', // --- includes all animations
