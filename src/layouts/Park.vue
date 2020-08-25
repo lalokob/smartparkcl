@@ -2,7 +2,7 @@
 	<q-layout view="hHr Lpr fFr"> <!-- Be sure to play with the Layout demo on docs -->
 
 		<!-- (Optional) The Header -->
-		<q-header class="bg-white text-dark" >
+		<q-header class="bg-smoke text-white" >
 			<q-toolbar>
 				<q-btn flat icon="fas fa-th" @click="$router.push('/');"/>
 				<q-toolbar-title class="text-center">
@@ -12,9 +12,15 @@
 			<q-toolbar class="column">
 				<q-form class="q-pb-md" @submit="defineParking">
 					<div class="finder row items-center q-py-md">
-						<q-icon color="dark" name="fas fa-car" size="30px" class="col"/>
-						<input color="dark" outlined ref="_mginput" type="text" class="q-px-md col-8 iptplate text-uppercase text-h3 bg-none" v-model="iptplate.value" :disable="iptplate.state" autocomplete="off"/>
-						<q-btn color="dark" flat class="col" type="submit" stack icon="fas fa-magic" :disable="iptplate.defining" :loading="iptplate.defining"/>
+						<q-icon color="white" name="fas fa-car" size="30px"/>
+						<input 
+							color="white" outlined ref="_mginput" type="text" 
+							class="ds q-px-md text-white iptplate text-uppercase text-h3 bg-none" 
+							v-model="iptplate.value" 
+							:disable="iptplate.state" 
+							autocomplete="off"
+						/>
+						<q-btn color="white" flat type="submit" stack icon="fas fa-magic" :disable="iptplate.defining" :loading="iptplate.defining"/>
 					</div>
 				</q-form>
 			</q-toolbar>
@@ -23,12 +29,9 @@
 		
 
 		<!-- (Optional) The Footer -->
-		<q-footer class="bg-white text-dark">
-			<q-toolbar>
-				<q-toolbar-title class="text-center">
-					<span class="text-weight-light"> Grupo Vizcarra </span>
-				</q-toolbar-title>
-			</q-toolbar>
+		<!-- (Optional) The Footer -->
+		<q-footer class="text-white bg-none text-center">
+			<span class="text-weight-light"> Grupo Vizcarra </span>
 		</q-footer>
 
 		<q-drawer v-model="lrDrawer" side="right" bordered content-class="bg-white">
@@ -445,15 +448,17 @@ export default {
 </script>
 <style lang="scss">
 	.ds{border:1px solid red;}
-	.finder{
-		border-bottom: 2px solid #d1d1d1;
-	}
+	.finder{ border-bottom: 1px solid #d1d1d1; }
 	.iptplate{
 		text-align: center;
 		border:none;
+		max-width: 300px;
 
-		&:focus{
-			outline:none;
-		}
+		&:focus{ outline:none; }
 	}
+
+	.bg-smoke{ background: rgba(#000000,.15); };
+	html{ background-image: linear-gradient(315deg, #7f5a83 0%, #0d324d 74%); }
+	.bg-none{ background:none!important;}
+
 </style>

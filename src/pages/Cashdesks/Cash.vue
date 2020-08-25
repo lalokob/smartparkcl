@@ -1,7 +1,7 @@
 <template>
 	<q-page padding>
 		<!-- (Optional) The Header -->
-		<q-header class="bg-white text-dark">
+		<q-header class="text-white bg-smoke">
 			<q-toolbar>
 				<q-btn flat icon="far fa-arrow-alt-circle-left" @click="$router.push('/cajas');"/>
 				<q-toolbar-title class="text-center">
@@ -14,15 +14,23 @@
 			</q-toolbar>
 		</q-header>
 
-		<q-card>
+		<q-card class="text-weight-light">
 			<q-toolbar>
 				<template v-if="data">
 					<span> Estado: {{ cashstates[data._state] }} </span>
 					<q-space/>
-						<!-- <q-btn v-if="recycleOpening(opening,cut)" @click="reactiveOpening(opening,idcash)" flat round color="orange-10" icon="fas fa-play-circle" :loading="wndOpening.reopen" :disable="wndOpening.reopen"/> -->
-						<q-btn v-if="recycleOpening(opening,cut)" @click="reactiveOpening(opening,idcash)" flat round color="orange-10" icon="fas fa-play-circle"/>
-						<q-btn v-else @click="initOpening()" flat round color="primary" icon="far fa-play-circle" />
-					</span>
+					<template v-if="data._state==1">
+						<q-btn @click="initOpening()" flat round color="primary" icon="far fa-play-circle" />
+					</template>
+
+					<template v-if="data._state==2">
+						<q-btn v-if="recycleOpening(opening,cut)" @click="reactiveOpening(opening,idcash)" flat round color="orange-10" icon="fas fa-play-circle" :loading="wndOpening.reopen" :disable="wndOpening.reopen"/>
+						<q-btn v-else @click="initOpening(idcash)" flat round color="primary" icon="far fa-play-circle" />
+					</template>
+
+					<template v-if="data._state==3">
+						<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(idcash)"/>
+					</template>
 				</template>
 			</q-toolbar>
 			<q-separator/>
@@ -37,9 +45,9 @@
 				<q-separator vertical/>
 				<q-card-section>
 					<div class="column">
-						<span> Ultima Apertura: {{ humantime(opening.init) }} </span>
-						<span> Asignacion: {{ opening.usbynick }} </span>
-						<span> Ultimo Corte: {{ humantime(cut.makeit) }} </span>
+						<div> Ultima Apertura: <span> {{ opening?humantime(opening.init):'---' }} </span> </div>
+						<div> Asignacion: <span> {{ opening?opening.usbynick:'---' }} </span> </div>
+						<div> Ultimo Corte: <span> {{ cut?humantime(cut.makeit):'---' }} </span> </div>
 					</div>
 				</q-card-section>
 				<q-separator vertical/>
@@ -130,7 +138,6 @@ export default {
 				this.cut = resp.openandcut.cut;
 				this.denomsdb = resp.currencies;
 				this.cashiersdb = resp.cashiers;
-
 				this.data = resp.cash;
 			}else{
 				this.$router.push('/cajas');
@@ -163,6 +170,10 @@ export default {
 		initOpening(idx){
 			// this.wndOpening.cash=this.cashdesks[idx];
 			this.wndOpening.state=true;
+		},
+		initCut(idx){
+			this.wndCut.cash=this.cashdesks[idx];
+			this.wndCut.state=true;
 		},
 	},
 	computed:{
