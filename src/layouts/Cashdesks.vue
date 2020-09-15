@@ -2,12 +2,17 @@
 	<q-layout view="hHh Lpr fFf"> <!-- Be sure to play with the Layout demo on docs -->
 
 		<!-- (Optional) The Header -->
-		<q-header class="text-white bg-smoke">
+		<q-header class="text-grey-7 bg-darkl1 exo">
 			<q-toolbar>
 				<q-btn flat icon="fas fa-th" @click="$router.push('/');"/>
 				<q-toolbar-title class="text-center">
-					<span class="text-weight-light"> Estacionamiento - Cajas </span>
+					<span> Estacionamiento - Cajas </span>
 				</q-toolbar-title>
+
+				<span>
+					<span class="text-pink-6"> Smart</span>
+					<span class="text-white">Park</span>
+				</span>
 			</q-toolbar>
 		</q-header>
 
@@ -16,7 +21,7 @@
 			<span class="text-weight-light"> Grupo Vizcarra </span>
 		</q-footer>
 
-		<q-page-container>
+		<q-page-container class="bg-darkl0 text-owngrey exo">
 			<!-- This is where pages get injected -->
 			<router-view />
 		</q-page-container>
@@ -35,9 +40,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-	.bg-smoke{ background: rgba(#000000,.15); };
-	html{ background-image: linear-gradient(315deg, #7f5a83 0%, #0d324d 74%); }
-	.bg-none{ background:none!important;}
-</style>

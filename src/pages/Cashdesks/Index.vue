@@ -1,6 +1,6 @@
 <template>
-	<q-page class="row items-center justify-center">
-		<div class="row q-pt-md q-pl-md text-weight-light">
+	<q-page class="row items-center justify-center bg-mgradient">
+		<div class="row q-pt-md q-pl-md">
 			<q-spinner
 				color="dark"
 				size="3em"
@@ -10,7 +10,7 @@
 
 			<q-card v-for="(cash,cashidx) in cashdesks"
 				:key="cashidx"
-				class="q-mr-md q-mb-md" flat bordered
+				class="q-mr-md q-mb-md bg-darkl1" flat bordered
 			>
 				<q-card-section horizontal>
 					<template v-if="cash._state==1">
@@ -20,41 +20,41 @@
 						</q-card-section>
 						<q-separator vertical/>
 						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
-							<q-btn flat round color="dark" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
-							<q-btn @click="initOpening(cashidx)" flat round color="primary" icon="far fa-play-circle" />
+							<q-btn flat round color="green-13" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
+							<q-btn @click="initOpening(cashidx)" flat round color="green-13" icon="far fa-play-circle" />
 						</q-card-actions>
 					</template>
 
 					<template v-if="cash._state==2">
 						<q-card-section class="column justify-center">
-							<div> <span class="text-h6"> Caja {{ cash.id }} </span> <span>{{ cashstates[cash._state] }}</span> </div>
+							<div> <span class="text-h6 text-light-blue-13"> Caja {{ cash.id }} </span> <span>{{ cashstates[cash._state] }}</span> </div>
 							<div>Ultima apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
 							<div>Asignacion: {{ cash.opening.ustonames }} {{ cash.opening.ustolnames }}</div>
 							<div>Ultimo corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
 						</q-card-section>
 						<q-separator vertical/>
 						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
-							<q-btn flat round color="dark" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
+							<q-btn flat round color="green-13" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
 							<q-btn v-if="recycleOpening(cash.opening,cash.cut)" @click="reactiveOpening(cash.opening,cash.id)" flat round color="orange-10" icon="fas fa-play-circle" :loading="wndOpening.reopen" :disable="wndOpening.reopen"/>
-							<q-btn v-else @click="initOpening(cashidx)" flat round color="primary" icon="far fa-play-circle" />
+							<q-btn v-else @click="initOpening(cashidx)" flat round color="green-13" icon="far fa-play-circle" />
 						</q-card-actions>
 					</template>
 
 					<template v-if="cash._state==3">
 						<q-card-section class="column justify-center">
-							<div> <span class="text-h6"> Caja {{ cash.id }} </span>: <span>{{ cashstates[cash._state] }}</span> </div>
+							<div> <span class="text-h6 text-light-blue-13"> Caja {{ cash.id }} </span>: <span>{{ cashstates[cash._state] }}</span> </div>
 							<div>Ultima Apertura: {{ humantime(cash.opening.init) }}, {{ cash.opening.usbynames }} {{ cash.opening.usbylnames }}</div>
 							<div>Ultima Asignacion: {{ cash.opening.ustonames }} {{ cash.opening.ustolnames }} </div>
 							<div v-if="cash.cut">Corte: {{ humantime(cash.cut.makeit) }}, {{ cash.cut.fnames }} {{ cash.cut.lnames }}</div>
 						</q-card-section>
 						<q-separator vertical/>
 						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==1">
-							<q-btn flat round color="dark" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
-							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
+							<q-btn flat round color="green-13" icon="fas fa-external-link-alt" @click="$router.push(`cajas/${cash.id}`)"/>
+							<q-btn flat round color="green-13" icon="fas fa-cut" @click="initCut(cashidx)"/>
 						</q-card-actions>
 
 						<q-card-actions vertical class="justify-around q-px-md" v-if="user.rolid==2">
-							<q-btn flat round color="red" icon="fas fa-cut" @click="initCut(cashidx)"/>
+							<q-btn flat round color="green-13" icon="fas fa-cut" @click="initCut(cashidx)"/>
 						</q-card-actions>
 					</template>
 				</q-card-section>
@@ -367,7 +367,6 @@ export default {
 }
 </script>
 <style lang="scss">
-	.ds{border:1px solid red!important;}
 	.stlcash{
 		width: 150px;
 		min-height: 150px;

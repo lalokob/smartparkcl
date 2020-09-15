@@ -1,123 +1,143 @@
 <template>
 	<q-layout view="hHr Lpr fFr"> <!-- Be sure to play with the Layout demo on docs -->
-
 		<!-- (Optional) The Header -->
-		<q-header class="bg-smoke text-white" >
-			<q-toolbar>
+		<q-header class="bg-darkl1 column text-darkl3 exo">
+			<q-toolbar class="bg-darkl1">
 				<q-btn flat icon="fas fa-th" @click="$router.push('/');"/>
 				<q-toolbar-title class="text-center">
 					<span class="text-weight-light"> Estacionamiento </span>
 				</q-toolbar-title>
+				<span>
+					<span class="text-pink-6"> Smart</span>
+					<span class="text-white">Park</span>
+				</span>
 			</q-toolbar>
-			<q-toolbar class="column">
-				<q-form class="q-pb-md" @submit="defineParking">
-					<div class="finder row items-center q-py-md">
-						<q-icon color="white" name="fas fa-car" size="30px"/>
+			<q-toolbar class="row justify-between items-center">
+
+				<q-card flat class="bg-none text-weight-light">
+					<q-card-section class="col column text-center">
+						<span class="text-caption">En uso</span>
+						<span class="text-h5 text-light-blue-13">{{ parking ? pksactives.length:0 }}</span>
+					</q-card-section>
+				</q-card>
+
+				<q-card flat class="bg-none text-weight-light">
+					<q-card-section class="col column text-center">
+						<span class="text-caption">Libres</span>
+						<span class="text-h5 text-light-blue-13">{{ freeplaces }}</span>
+					</q-card-section>
+				</q-card>
+
+				<q-form @submit="defineParking" v-if="$q.platform.is.desktop">
+					<div class="finder row items-center justify-center">
+						<q-icon color="grey-4" name="fas fa-car" size="25px" class="q-px-md"/>
 						<input 
-							color="white" outlined ref="_mginput" type="text" 
-							class="ds q-px-md text-white iptplate text-uppercase text-h3 bg-none" 
+							color="white" ref="_mginput" type="text" 
+							:class="$q.platform.is.mobile ?'q-px-md text-white iptplate text-uppercase':'q-px-md text-white iptplate text-uppercase text-h5'" 
 							v-model="iptplate.value" 
-							:disable="iptplate.state" 
+							:disable="iptplate.state"
+							spellcheck="off"
 							autocomplete="off"
 						/>
-						<q-btn color="white" flat type="submit" stack icon="fas fa-magic" :disable="iptplate.defining" :loading="iptplate.defining"/>
+						<q-btn color="grey-4" flat type="submit" stack icon="fas fa-magic" :disable="iptplate.defining" :loading="iptplate.defining"/>
 					</div>
 				</q-form>
+
+				<template v-if="usdata.rolid==1||usdata.rolid==2">
+					<q-card flat class="bg-none text-weight-light">
+						<q-card-section class="col column text-center">
+							<span class="text-caption">Entradas:</span>
+							<span class="text-h5 text-light-blue-13">{{ parking ? parking.length:0 }}</span>
+						</q-card-section>
+					</q-card>
+
+					<q-card flat class="bg-none text-weight-light">
+						<q-card-section class="col column text-center">
+							<span class="text-caption">Cobros:</span>
+							<span class="text-h5 text-light-blue-13">{{ parking ? pkschargeds.length : 0 }}</span>
+						</q-card-section>
+					</q-card>
+				</template>
 			</q-toolbar>
 			<q-separator/>
 		</q-header>
-		
 
 		<!-- (Optional) The Footer -->
-		<!-- (Optional) The Footer -->
-		<q-footer class="text-white bg-none text-center">
-			<span class="text-weight-light"> Grupo Vizcarra </span>
+		<q-footer class="bg-darkl1 column text-darkl3" v-if="$q.platform.is.mobile">
+			<q-toolbar>
+				<q-form @submit="defineParking">
+					<div class="finder row items-center justify-center">
+						<q-icon color="grey-4" name="fas fa-car" size="25px" class="q-px-md"/>
+						<input 
+							color="white" ref="_mginput" type="text" 
+							:class="$q.platform.is.mobile ?'q-px-md text-white iptplate text-uppercase':'q-px-md text-white iptplate text-uppercase text-h5'" 
+							v-model="iptplate.value" 
+							:disable="iptplate.state"
+							spellcheck="off"
+							autocomplete="off"
+						/>
+						<q-btn color="grey-4" flat type="submit" stack icon="fas fa-magic" :disable="iptplate.defining" :loading="iptplate.defining"/>
+					</div>
+				</q-form>
+			</q-toolbar>
 		</q-footer>
 
-		<q-drawer v-model="lrDrawer" side="right" bordered content-class="bg-white">
+		<q-drawer v-model="lrDrawer" side="right" content-class="bg-darkl1 text-darkl3">
 			<div class="q-pa-md">
-				<q-card class="text-weight-light">
-					<q-card-section class="text-weigth-light">
+				<q-card flat class="text-weight-light">
+					<!-- <q-card-section class="text-weigth-light">
 						Hola, {{ usdata.nick }}
 					</q-card-section>
-					<q-separator/>
-					<q-card-section>
+					<q-separator/> -->
+					<!-- <q-card-section>
 						Capacidad total: {{ maxplaces }}
-						<q-linear-progress size="25px" :value="capacitypark" color="dark">
+						<q-linear-progress size="25px" :value="capacitypark" color="light-green-13">
 							<div class="absolute-full flex flex-center">
-								<q-badge color="white" text-color="dark" :label="capacityparklabel" />
+								<q-badge color="accent" text-color="light-blue-14" :label="capacityparklabel" />
 							</div>
 						</q-linear-progress>
-					</q-card-section>
-					<q-separator />
-					<q-card-section horizontal>
-						<q-card-section class="col column text-center">
-							<span class="text-center text-caption">En uso</span>
-							<span class="text-center text-h5">{{ parking ? pksactives.length:0 }}</span>
-						</q-card-section>
-						<q-card-section class="col column text-center">
-							<span class="text-caption">Libres</span>
-							<span class="text-h5">{{ freeplaces }}</span>
-						</q-card-section>
-					</q-card-section>
-					<template v-if="usdata.rolid==1||usdata.rolid==2">
-						<q-separator />
-						<q-card-section horizontal>
-							<q-card-section class="col column text-center">
-								<span class="text-center text-caption">Entradas:</span>
-								<span class="text-center text-h5">{{ parking ? parking.length:0 }}</span>
-							</q-card-section>						
-							<q-card-section class="col column text-center">
-								<span class="text-caption">Cobros:</span>
-								<span class="text-h5">{{ parking ? pkschargeds.length : 0 }}</span>
-							</q-card-section>
-						</q-card-section>
-					</template>
-						
+					</q-card-section> -->
 				</q-card>
 			</div>
 			<q-separator/>
-			<div>
-				<div class="text-weight-light" v-for="(park,idxpk) in pkschargeds" :key="'pksch_'+idxpk">
+			<div class="q-pa-sm">
+				<div class="text-weight-light q-mb-sm" v-for="(park,idxpk) in pkschargeds" :key="'pksch_'+idxpk">
 					<transition appear
 						enter-active-class="animated flipInX"
 						leave-active-class="animated flipOutX"
 					>
-						<q-card flat>
-							<q-card-section>					
-								Folio: {{ park.parkid }}<br/>
-								Placa: {{ park.plate }}<br/>
-								Salida: {{ park.ends }}
+						<q-card class="bg-darkl0 unparking">
+							<q-card-section class="column">					
+								<span> Folio: <span class="text-light-blue-13 text-bold">{{ park.parkid }}</span></span>
+								<span> Placa: <span class="text-light-blue-13">{{ park.plate }}</span></span>
+								<span> Salida: {{ humantime(park.ends) }}</span>
 							</q-card-section>
 						</q-card>
 					</transition>
-					<q-separator/>
 				</div>
 			</div>
 		</q-drawer>
 
-		<q-page-container>
+		<q-page-container class="bg-darkl0 text-darkl3 exo">
 			<!-- This is where pages get injected -->
-			<q-page class="column items-center justify-center">
-				
+			<q-page class="column text-darkl3">
 				<div class="row q-mt-md q-pt-md q-pl-md justify-center">
-					<!-- { "plateid": 24, "plate": "FGH-123", "idmnservice": 1, "init": "2020-08-01 02:14:00", "idtariff": 1, "parkstate": "1" } -->
 					<div v-for="(park,idxpk) in pksactives" :key="idxpk">
 						<transition appear
 							enter-active-class="animated zoomInUp"
 							leave-active-class="animated flipOutX"
 						>
-							<q-card class="q-mr-md q-mb-md" flat bordered>
+							<q-card class="bg-darkl1 q-mr-md q-mb-md parking" flat>
 								<q-card-section horizontal>
 									<q-card-section class="column justify-center">
 										<div class="text-h5">{{ park.parkid }}</div>
 										<div class="text-bold">{{ park.plate }}</div>
-										<div clasS="text-caption">{{ park.init }}</div>
+										<div clasS="text-caption">{{ humantime(park.init) }}</div>
 									</q-card-section>
 									<q-separator vertical/>
 									<q-card-actions vertical class="justify-around q-px-md">
 										<template v-if="park.parkstate==1||park.parkstate==4">
-											<q-btn flat round :color="park.parkstate==1?'primary':'accent'" icon="fas fa-angle-double-up" @click="autoCheckPark(park.plate);" />
+											<q-btn flat round :color="park.parkstate==1?'green-13':'pink-6'" icon="fas fa-angle-double-up" @click="autoCheckPark(park.plate);" />
 										</template>
 										<template v-if="park.parkstate==2">
 											<q-btn flat round color="red" icon="fas fa-cut" />
@@ -128,104 +148,106 @@
 						</transition>
 					</div>
 				</div>
-				<!-- CHECKIN STANDARD -->
-				<q-dialog v-model="wndCheckinStd.state" @show="bfShowCheckinStd" @hide="mginputFocus">
-					<q-card v-if="wndCheckinStd.case">
-						<q-toolbar>
-							<q-toolbar-title>
-								<span class="text-weight-light text-uppercase"> {{ iptplate.value }} </span>
-							</q-toolbar-title>
-							<q-btn rounded flat color="negative" icon="close" v-close-popup/>
-						</q-toolbar>
-
-						<q-card-section>
-							<q-form @submit="checkInSTD">
-								<q-select color="dark" v-model="usetariff" :options="tariffsdb" label="Tarifa" />
-								<q-input color="dark" v-model="notascheckinstd" stack-label label="notas" ref="_chkinnotes" />
-
-								<q-card-actions align="center">
-									<q-btn :loadign="wndCheckinStd.incheckin" :disabled="wndCheckinStd.incheckin" type="submit" outline label="Checkin" />
-								</q-card-actions>
-							</q-form>
-						</q-card-section>
-						
-					</q-card>
-					<q-card v-else>
-						<q-card-section>
-							<h6>No ha inicado caja..</h6>
-						</q-card-section>
-					</q-card>
-				</q-dialog>
-
-				<q-dialog v-model="wndPreCheckOutStd.state" @show="afShowCheckOut" @hide="resetPrecheckout();mginputFocus();">
-					<q-card>
-						<q-toolbar>
-							<q-toolbar-title >
-								<span class="text-weight-light text-uppercase"> Checkout </span>
-							</q-toolbar-title>
-							<q-btn rounded flat color="negative" icon="close" v-close-popup/>
-						</q-toolbar>
-
-						<q-card-section horizontal v-if="wndPreCheckOutStd.topay">
-							<q-card-section>
-								<q-markup-table flat class="text-dark">
-									<tbody>
-										<tr>
-											<td class="text-left">Placa:</td>
-											<td class="text-left">{{ wndPreCheckOutStd.dtpark.plate }}</td>
-										</tr>
-
-										<tr>
-											<td class="text-left">Inicio:</td>
-											<td class="text-left">{{ wndPreCheckOutStd.dtpark.init }}</td>
-										</tr>
-
-										<tr>
-											<td class="text-left">Salida:</td>
-											<td class="text-left">{{ wndPreCheckOutStd.topay.time_calc }}</td>
-										</tr>
-
-										<tr>
-											<td class="text-left">Tiempo Total:</td>
-											<td class="text-left">{{ wndPreCheckOutStd.topay.hours }} horas, {{ wndPreCheckOutStd.topay.mints_adds }} minutos</td>
-										</tr>
-
-										<tr>
-											<td class="text-left">Total a pagar</td>
-											<td class="text-left">$ {{ wndPreCheckOutStd.topay.totalcost }}</td>
-										</tr>
-									</tbody>
-								</q-markup-table>
-							</q-card-section>
-
-							<q-card-section  v-if="usdata.rolid==1||usdata.rolid==2">
-								<q-form @submit="makeCharge">
-									<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
-									<q-input color="dark" type="number" ref="iptpayment" v-model="wndPreCheckOutStd.paytotal" stack-label label="Pago"/>
-
-									<q-card-actions align="center" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
-										<q-btn 
-											:disabled="wndPreCheckOutStd.paying" 
-											:loading="wndPreCheckOutStd.paying" 
-											type="submit" color="primary" 
-											flat label="pagar"/>
-									</q-card-actions>
-								</q-form>
-								<div class="text-center q-pa-md" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
-									Cambio: {{wndPreCheckOutStd.paytotal-wndPreCheckOutStd.topay.totalcost}}
-								</div>
-							</q-card-section>
-						</q-card-section>
-					</q-card>
-				</q-dialog>
 			</q-page>
 		</q-page-container>
+
+		<!-- CHECKIN STANDARD -->
+		<q-dialog v-model="wndCheckinStd.state" @show="bfShowCheckinStd" @hide="mginputFocus">
+			<q-card v-if="wndCheckinStd.case">
+				<q-toolbar>
+					<q-toolbar-title>
+						<span class="text-weight-light text-uppercase"> {{ iptplate.value }} </span>
+					</q-toolbar-title>
+					<q-btn rounded flat color="negative" icon="close" v-close-popup/>
+				</q-toolbar>
+
+				<q-card-section>
+					<q-form @submit="checkInSTD">
+						<q-select color="dark" v-model="usetariff" :options="tariffsdb" label="Tarifa" />
+						<q-input color="dark" v-model="notascheckinstd" stack-label label="notas" ref="_chkinnotes" />
+
+						<q-card-actions align="center">
+							<q-btn :loadign="wndCheckinStd.incheckin" :disabled="wndCheckinStd.incheckin" type="submit" outline label="Checkin" />
+						</q-card-actions>
+					</q-form>
+				</q-card-section>
+				
+			</q-card>
+			<q-card v-else>
+				<q-card-section>
+					<h6>No ha inicado caja..</h6>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
+
+		<q-dialog v-model="wndPreCheckOutStd.state" @show="afShowCheckOut" @hide="resetPrecheckout();mginputFocus();">
+			<q-card>
+				<q-toolbar>
+					<q-toolbar-title >
+						<span class="text-weight-light text-uppercase"> Checkout </span>
+					</q-toolbar-title>
+					<q-btn rounded flat color="negative" icon="close" v-close-popup/>
+				</q-toolbar>
+
+				<q-card-section horizontal v-if="wndPreCheckOutStd.topay">
+					<q-card-section>
+						<q-markup-table flat class="text-dark">
+							<tbody>
+								<tr>
+									<td class="text-left">Placa:</td>
+									<td class="text-left">{{ wndPreCheckOutStd.dtpark.plate }}</td>
+								</tr>
+
+								<tr>
+									<td class="text-left">Inicio:</td>
+									<td class="text-left">{{ wndPreCheckOutStd.dtpark.init }}</td>
+								</tr>
+
+								<tr>
+									<td class="text-left">Salida:</td>
+									<td class="text-left">{{ wndPreCheckOutStd.topay.time_calc }}</td>
+								</tr>
+
+								<tr>
+									<td class="text-left">Tiempo Total:</td>
+									<td class="text-left">{{ wndPreCheckOutStd.topay.hours }} horas, {{ wndPreCheckOutStd.topay.mints_adds }} minutos</td>
+								</tr>
+
+								<tr>
+									<td class="text-left">Total a pagar</td>
+									<td class="text-left">$ {{ wndPreCheckOutStd.topay.totalcost }}</td>
+								</tr>
+							</tbody>
+						</q-markup-table>
+					</q-card-section>
+
+					<q-card-section  v-if="usdata.rolid==1||usdata.rolid==2">
+						<q-form @submit="makeCharge">
+							<q-select color="dark" v-model="usepayway" :options="paywaysdb" stack-label label="Forma de pago" />
+							<q-input color="dark" type="number" ref="iptpayment" v-model="wndPreCheckOutStd.paytotal" stack-label label="Pago"/>
+
+							<q-card-actions align="center" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
+								<q-btn 
+									:disabled="wndPreCheckOutStd.paying" 
+									:loading="wndPreCheckOutStd.paying" 
+									type="submit" color="primary" 
+									flat label="pagar"/>
+							</q-card-actions>
+						</q-form>
+						<div class="text-center q-pa-md" v-if="wndPreCheckOutStd.paytotal>=wndPreCheckOutStd.topay.totalcost">
+							Cambio: {{wndPreCheckOutStd.paytotal-wndPreCheckOutStd.topay.totalcost}}
+						</div>
+					</q-card-section>
+				</q-card-section>
+			</q-card>
+		</q-dialog>
 
 	</q-layout>
 </template>
 
 <script>
 import apipark from '../API/park'
+import { date } from 'quasar'
 export default {
     // name: 'LayoutName',
 
@@ -425,7 +447,7 @@ export default {
 					icon: 'fas fa-grin-beam-sweat'
 				});
 			}
-		}
+		},
 	},
 	computed:{
 		apikey(){ return this.$store.state.account.apikey },
@@ -442,23 +464,50 @@ export default {
 		},
 		pksactives(){ if(this.parking){ return this.parking.filter( pk =>{ return pk.parkstate==4||pk.parkstate==1 }); } },
 		pkschargeds(){ if(this.parking){ return this.parking.filter( pk =>{ return pk.parkstate==3 }); } },
-		freeplaces(){ if(this.parking){ return this.maxplaces-this.pksactives.length}else{return 0;} }
+		freeplaces(){ if(this.parking){ return this.maxplaces-this.pksactives.length}else{return 0;} },
+		humantime(){ return time =>{ 
+				let now = Date.now(); 
+				let timecalc = Date.parse(time);
+				let diff = date.getDateDiff(now, timecalc, 'days');
+
+				switch (diff) {
+					case 1:
+							return "Ayer, "+date.formatDate(timecalc, 'hh:mm a');
+						break;
+				
+					case 0:
+							return "Hoy, "+date.formatDate(timecalc, 'hh:mm a');
+						break;
+
+					default:
+							return `Hace ${diff} dias, `+date.formatDate(timecalc, 'hh:mm a');
+						break;
+				}
+
+				return diff;
+			}
+		},
 	}
 }
 </script>
 <style lang="scss">
-	.ds{border:1px solid red;}
-	.finder{ border-bottom: 1px solid #d1d1d1; }
-	.iptplate{
-		text-align: center;
-		border:none;
-		max-width: 300px;
+	.finder{ 
+		border-radius:30px;
+		border:1px solid #3E4148;
 
-		&:focus{ outline:none; }
+		.iptplate{
+			text-align: center;
+			max-width: 250px;
+			background:none;
+			border:none;
+			&:focus{ outline:none; }
+		}
 	}
 
-	.bg-smoke{ background: rgba(#000000,.15); };
-	html{ background-image: linear-gradient(315deg, #7f5a83 0%, #0d324d 74%); }
-	.bg-none{ background:none!important;}
-
+	.parking,.unparking{
+		transition:all 300ms;
+		&:hover{
+			color:#FFF!important;
+		}
+	}
 </style>

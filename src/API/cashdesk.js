@@ -32,6 +32,12 @@ export default{
         console.log("%cCargando Dashboard de caja...","font-size:2em; color:gold;");
         console.log(data);
 
-        return apipark.post('cashdesks/shield',data)
+        return apipark.post('cashdesks/shield',data);
+    },
+    historic(data){
+        console.log("%cCargando Historico","font-size:2em; color:purple;");
+        console.log(data);
+
+        return apipark.post('cashdesks/historic',data);
     }
 }

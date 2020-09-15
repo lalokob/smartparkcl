@@ -1,34 +1,39 @@
 <template>
 	<q-layout view="hHh Lpr fFf"> <!-- Be sure to play with the Layout demo on docs -->
-		<q-footer class="bg-smoke">
+		<q-footer class="bg-none">
 			<q-toolbar class="column justify-center text-center text-caption">
 				Grupo Vizcarra - 2020
 			</q-toolbar>
 		</q-footer>
 
-		<q-page-container>
+		<q-page-container class="bg-darkl0 exo">
 			<!-- This is where pages get injected -->
 			<!-- <router-view /> -->
 			<q-page class="row items-center justify-center">
 				<q-form @submit="tryLogin" v-if="credentials.formstate" class="column loginform">
-					<div class="text-center">
+					<div class="text-center q-mb-sm">
 						<q-img src="~/assets/logo.png" spinner-color="white" style="width: 170px;"/>
 					</div>
-					<q-card class="q-mt-sm">
-						<q-card-section class="text-h6 text-grey-8 text-weight-light row justify-between items-center">
-							<span>Acceso</span>
-							<span> <q-icon name="fas fa-car"/> SmartPark</span>
+					<q-card class="bg-darkl1 text-white">
+						<q-card-section class="text-h6 row justify-between items-center">
+							<span>
+								<span class="text-pink-6"> Smart</span>
+								<span class="text-weight-thin">Park</span>
+							</span>
 						</q-card-section>
-						<q-separator/>
+					</q-card>
+
+					<q-card flat class="q-mt-sm bg-darkl1 text-white">
 						<q-card-section>
 							<div class="column">
-								<q-input type="text" color="dark" label="Usuario" stack-label class="ipt q-mb-xs" v-model="credentials.nick" autocapitalize="off" autocomplete="off"/>
-								<q-input type="password" color="dark" label="Contraseña" stack-label class="ipt q-mb-xs" v-model="credentials.pass" autocapitalize="off" autocomplete="off"/>
+								<q-input type="text" dark color="pink-6" label-color="grey-7" label="Usuario" class="ipt q-mb-xs" v-model="credentials.nick" autocapitalize="off" autocomplete="off"/>
+								<q-input type="password" dark color="pink-6" label-color="grey-7" label="Contraseña" class="ipt q-mb-xs" v-model="credentials.pass" autocapitalize="off" autocomplete="off"/>
 							</div>
 						</q-card-section>
-						<div class="column" v-if="credentials.nick.length>=2&&credentials.pass.length>=4">
-							<q-btn flat class="q-pa-sm" color="dark" type="submit" label="entrar"/>
-						</div>
+
+						<q-card-actions align="right" v-if="credentials.nick.length>=2&&credentials.pass.length>=4">
+							<q-btn flat class="q-pa-sm" color="pink-6" type="submit" label="entrar"/>
+						</q-card-actions>
 					</q-card>
 				</q-form>
 			</q-page>
@@ -75,10 +80,6 @@ export default {
 }
 </script>
 <style lang="scss">
-	.ds{border:1px solid red;}
-	.bg-smoke{ background: rgba(#000000,.15); };
-	html{ background-image: linear-gradient(315deg, #7f5a83 0%, #0d324d 74%); }
-	.bg-none{ background:none!important;}
 	.mainicon{ border-radius:20px; }
 	.loginform{ width:300px; }
 </style>
