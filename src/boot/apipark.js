@@ -4,7 +4,7 @@ import axios from 'axios'
 const apipark = axios.create({
     // baseURL: 'http://192.168.1.243/test/smartparkapi/public',//testing
     // baseURL: 'http://192.168.1.160/smartparkapi/public',//prod
-    baseURL: 'http://192.168.1.86/smartpark/public',//dev
+    baseURL: 'http://192.168.1.250/smartparkapi/public',//dev
     timeout:2500,
 });
 

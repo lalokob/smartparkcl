@@ -1,7 +1,7 @@
 <template>
 	<q-layout view="hHr Lpr fFr"> <!-- Be sure to play with the Layout demo on docs -->
 		<!-- (Optional) The Header -->
-		<q-header class="bg-darkl1 column text-darkl3 exo">
+		<q-header class="bg-darkl1 column text-darkl2 exo">
 			<q-toolbar class="bg-darkl1">
 				<q-btn flat icon="fas fa-th" @click="$router.push('/');"/>
 				<q-toolbar-title class="text-center">

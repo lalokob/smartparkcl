@@ -14,7 +14,7 @@
     <q-footer class="text-white bg-none text-center">
 		<span class="text-weight-light"> Grupo Vizcarra </span>
     </q-footer>
-    <q-page-container class="bg-darkl0 text-owngrey">
+    <q-page-container class="bg-darkl0 text-grey-4">
       <!-- This is where pages get injected -->
       <!-- <router-view /> -->
 		<q-page class="column items-center justify-center">
@@ -90,7 +90,8 @@ export default {
 		
 		&:hover{
 			transform: scale(1.05);
-			color: white;
+			color:#52E677!important;
+			border: 1px solid #52E677;
 		};
 	}
 </style>

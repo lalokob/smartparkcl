@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../../Dockervols/backend/smartparkapi"
+		},
+		{
+			"path": "../.."
+		}
+	],
+	"settings": {
+		"vetur.experimental.templateInterpolationService": true
+	}
+}
