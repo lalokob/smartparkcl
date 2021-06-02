@@ -148,6 +148,7 @@
 						</transition>
 					</div>
 				</div>
+				<!-- <div>{{usdata}}</div> -->
 			</q-page>
 		</q-page-container>
 
@@ -483,7 +484,6 @@ export default {
 							return `Hace ${diff} dias, `+date.formatDate(timecalc, 'hh:mm a');
 						break;
 				}
-
 				return diff;
 			}
 		},
